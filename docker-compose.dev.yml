@@ -1,0 +1,42 @@
+name: tubebook-dev
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      # for local development
+      - '127.0.0.1:${API_PORT}:3000'
+    volumes:
+      - ./:/app
+      # Exclude node_modules to avoid conflicts
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: "pnpm --filter ./apps/api dev"
+
+  postgres:
+    image: 'pgvector/pgvector:pg18-trixie'
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    env_file:
+      - .env
+    ports:
+      # for local development
+      - '127.0.0.1:${POSTGRES_PORT}:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    user: postgres
+
+volumes:
+  postgres-data:

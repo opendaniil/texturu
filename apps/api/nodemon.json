@@ -1,0 +1,17 @@
+{
+	"watch": [
+		"src"
+	],
+	"ext": "ts,js,json",
+	"ignore": [
+		"dist",
+		"node_modules",
+		"**/*.spec.ts",
+		"**/*.test.ts",
+		"generated-db-types.ts",
+		"**/migrations/**"
+	],
+	"exec": "pnpm run start",
+	"legacyWatch": true,
+	"delay": "200"
+}

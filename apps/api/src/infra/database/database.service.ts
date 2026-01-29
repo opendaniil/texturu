@@ -1,0 +1,33 @@
+import {
+	Inject,
+	Injectable,
+	type OnModuleDestroy,
+	type OnModuleInit,
+} from "@nestjs/common"
+import { AppConfigService } from "../app-config/app-config.service"
+import type { DB } from "./database.module"
+import { DB_TOKEN } from "./database.tokens"
+import { generateTypes } from "./tasks/generate-types"
+import { migrateToLatest } from "./tasks/migrate"
+import { pingDatabase } from "./tasks/ping"
+
+@Injectable()
+export class DatabaseService implements OnModuleInit, OnModuleDestroy {
+	constructor(
+		@Inject(DB_TOKEN) public readonly db: DB,
+		@Inject(AppConfigService) private readonly config: AppConfigService
+	) {}
+
+	async onModuleInit() {
+		await migrateToLatest(this.db)
+
+		if (!this.config.isProd) {
+			await pingDatabase(this.db)
+			await generateTypes()
+		}
+	}
+
+	async onModuleDestroy() {
+		await this.db.destroy()
+	}
+}
