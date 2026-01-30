@@ -13,14 +13,41 @@ services:
       - '127.0.0.1:${API_PORT}:3000'
     volumes:
       - ./:/app
-      # Exclude node_modules to avoid conflicts
+      # Exclude to avoid conflicts
       - /app/node_modules
+      - /app/apps/api/node_modules
     environment:
       NODE_ENV: development
     env_file:
       - .env
     restart: unless-stopped
     command: "pnpm --filter ./apps/api dev"
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile.dev
+    depends_on:
+      - api
+    ports:
+      # for local development
+      - '127.0.0.1:${WEB_PORT}:80'
+    volumes:
+      - ./:/app
+      # Exclude to avoid conflicts
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
+    environment:
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+      WATCHPACK_POLLING_INTERVAL: "500"
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "500"
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: "pnpm --filter ./apps/web dev"
 
   postgres:
     image: 'pgvector/pgvector:pg18-trixie'
