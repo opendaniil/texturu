@@ -1,0 +1,12 @@
+FROM node:24-alpine
+
+ARG FOLDER=/apps/mastra
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+WORKDIR /app
+COPY pnpm-lock.yaml ./
+COPY ${FOLDER}/package*.json ./
+RUN pnpm install
