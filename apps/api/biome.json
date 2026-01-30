@@ -13,5 +13,8 @@
 				"useImportType": "off"
 			}
 		}
+	},
+	"files": {
+		"includes": ["**", "!!src/infra/database/generated-db-types.ts"]
 	}
 }
