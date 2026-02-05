@@ -20,6 +20,9 @@ services:
     ports:
       # for local development
       - '127.0.0.1:${API_PORT}:3000'
+    networks:
+      - database_network
+      - redis_network
     command: "pnpm --filter ./apps/api dev"
     restart: unless-stopped
 
@@ -43,6 +46,8 @@ services:
     ports:
       # for local development
       - '127.0.0.1:${MASTRA_PORT}:4111'
+    networks:
+      - database_network
     command: "pnpm --filter ./apps/mastra dev"
     restart: unless-stopped
 
@@ -55,12 +60,21 @@ services:
     ports:
       # for local development
       - '127.0.0.1:${POSTGRES_PORT}:5432'
+    networks:
+      - database_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 5s
       timeout: 5s
       retries: 5
     user: postgres
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - '127.0.0.1:${REDIS_PORT}:6379'
+    networks:
+      - redis_network
 
   web:
     build:
@@ -87,6 +101,12 @@ services:
       - '127.0.0.1:${WEB_PORT}:80'
     command: "pnpm --filter ./apps/web dev"
     restart: unless-stopped
+
+networks:
+  database_network:
+    driver: bridge
+  redis_network:
+    driver: bridge
 
 volumes:
   postgres-data:
