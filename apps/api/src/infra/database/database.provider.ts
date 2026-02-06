@@ -1,5 +1,5 @@
 import type { Provider } from "@nestjs/common"
-import { Kysely, PostgresDialect } from "kysely"
+import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely"
 import { Pool } from "pg"
 import { AppConfigService } from "../app-config/app-config.service"
 import type { DB } from "./database.module"
@@ -22,6 +22,7 @@ function createKysely(env: AppConfigService): DB {
 
 	return new Kysely<Database>({
 		dialect: new PostgresDialect({ pool }),
+		plugins: [new CamelCasePlugin()],
 	})
 }
 

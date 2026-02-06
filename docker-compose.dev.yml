@@ -26,30 +26,30 @@ services:
     command: "pnpm --filter ./apps/api dev"
     restart: unless-stopped
 
-  mastra:
-    build:
-      context: .
-      dockerfile: ./apps/mastra/Dockerfile.dev
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./:/app
-      # Exclude to avoid conflicts
-      - /app/node_modules
-      - /app/apps/mastra/node_modules
-    environment:
-      WATCHPACK_POLLING: true
-      CHOKIDAR_USEPOLLING: true
-    env_file:
-      - .env
-    ports:
-      # for local development
-      - '127.0.0.1:${MASTRA_PORT}:4111'
-    networks:
-      - database_network
-    command: "pnpm --filter ./apps/mastra dev"
-    restart: unless-stopped
+  # mastra:
+  #   build:
+  #     context: .
+  #     dockerfile: ./apps/mastra/Dockerfile.dev
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./:/app
+  #     # Exclude to avoid conflicts
+  #     - /app/node_modules
+  #     - /app/apps/mastra/node_modules
+  #   environment:
+  #     WATCHPACK_POLLING: true
+  #     CHOKIDAR_USEPOLLING: true
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     # for local development
+  #     - '127.0.0.1:${MASTRA_PORT}:4111'
+  #   networks:
+  #     - database_network
+  #   command: "pnpm --filter ./apps/mastra dev"
+  #   restart: unless-stopped
 
   postgres:
     image: 'pgvector/pgvector:pg18-trixie'

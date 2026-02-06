@@ -12,6 +12,11 @@ export interface EnvironmentVariables {
 	POSTGRES_DB: string
 	POSTGRES_HOST: string
 	POSTGRES_PORT: number
+
+	WEB_HOST: string
+
+	REDIS_PORT: number
+	REDIS_HOST: string
 }
 
 function getSchema() {
@@ -24,6 +29,11 @@ function getSchema() {
 		POSTGRES_DB: Joi.string().required(),
 		POSTGRES_HOST: Joi.string().required(),
 		POSTGRES_PORT: Joi.number().port().required(),
+
+		WEB_HOST: Joi.string().required(),
+
+		REDIS_PORT: Joi.number().required(),
+		REDIS_HOST: Joi.string().required(),
 	})
 }
 

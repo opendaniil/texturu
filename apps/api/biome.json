@@ -16,5 +16,17 @@
 	},
 	"files": {
 		"includes": ["**", "!!src/infra/database/generated-db-types.ts"]
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["src/infra/database/migrations/**/*.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					}
+				}
+			}
+		}
+	]
 }

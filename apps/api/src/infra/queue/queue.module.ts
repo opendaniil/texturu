@@ -1,0 +1,29 @@
+import { BullModule } from "@nestjs/bullmq"
+import { Global, Module } from "@nestjs/common"
+import { AppConfigModule } from "../app-config/app-config.module"
+import { AppConfigService } from "../app-config/app-config.service"
+
+export const QUEUES = {
+	VIDEO_JOB: "video-job",
+} as const
+
+@Global()
+@Module({
+	imports: [
+		BullModule.forRootAsync({
+			imports: [AppConfigModule],
+			inject: [AppConfigService],
+			useFactory: (cfg: AppConfigService) => ({
+				connection: {
+					url: `${cfg.get("REDIS_HOST")}:${cfg.get("REDIS_PORT")}`,
+				},
+
+				prefix: "bull",
+			}),
+		}),
+
+		BullModule.registerQueue({ name: QUEUES.VIDEO_JOB }),
+	],
+	exports: [BullModule],
+})
+export class QueueModule {}

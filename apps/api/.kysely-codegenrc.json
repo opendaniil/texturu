@@ -1,0 +1,5 @@
+{
+	"camelCase": true,
+	"outFile": "src/infra/database/generated-db-types.ts",
+	"dialect": "postgres"
+}

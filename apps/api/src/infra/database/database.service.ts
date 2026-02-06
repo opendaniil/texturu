@@ -7,7 +7,6 @@ import {
 import { AppConfigService } from "../app-config/app-config.service"
 import type { DB } from "./database.module"
 import { DB_TOKEN } from "./database.tokens"
-import { generateTypes } from "./tasks/generate-types"
 import { migrateToLatest } from "./tasks/migrate"
 import { pingDatabase } from "./tasks/ping"
 
@@ -23,7 +22,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
 		if (!this.config.isProd) {
 			await pingDatabase(this.db)
-			await generateTypes()
 		}
 	}
 
