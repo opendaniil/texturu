@@ -1,7 +1,5 @@
 {
-	"watch": [
-		"src"
-	],
+	"watch": ["src", "../../packages/schemas/dist"],
 	"ext": "ts,js,json",
 	"ignore": [
 		"dist",

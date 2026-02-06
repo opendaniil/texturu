@@ -1,10 +1,16 @@
 import { useQuery } from "@tanstack/react-query"
+import type { VideoStatusResponse } from "@tubebook/schemas"
 import { statusPoll } from "../api"
 
 const POOL_INTERVAL = 5_000
 
 export function useVideoStatusPoll(videoId?: string) {
-	return useQuery({
+	return useQuery<
+		VideoStatusResponse,
+		Error,
+		VideoStatusResponse,
+		["smart-poll", string]
+	>({
 		queryKey: ["smart-poll", videoId ?? ""],
 		enabled: !!videoId,
 		queryFn: statusPoll,
@@ -12,7 +18,7 @@ export function useVideoStatusPoll(videoId?: string) {
 		refetchInterval: (query) => {
 			if (query.state.status === "error") return false
 
-			const data = query.state.data as any | undefined
+			const data = query.state.data
 			if (!data) return 0
 
 			if (data.isFinal !== true) return POOL_INTERVAL

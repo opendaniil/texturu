@@ -4,8 +4,9 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"dev": "docker compose -f './docker-compose.dev.yml' up --build",
-		"down": "docker compose -f ./docker-compose.dev.yml down && docker volume prune",
+		"dev": "pnpm down && pnpm up",
+		"up": "docker compose -f './docker-compose.dev.yml' up --build",
+		"down": "docker compose -f ./docker-compose.dev.yml down && docker volume prune -f",
 		"lint": "biome check . --write"
 	},
 	"keywords": [],

@@ -76,7 +76,7 @@ export class VideoService {
 	}
 
 	async findOne(id: string): Promise<VideoResponseDto | null> {
-		const video = this.videoRepo.findById(id)
+		const video = await this.videoRepo.findById(id)
 
 		if (!video) {
 			return null

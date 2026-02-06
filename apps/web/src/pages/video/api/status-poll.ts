@@ -1,11 +1,15 @@
 import type { QueryFunction } from "@tanstack/react-query"
+import {
+	type VideoStatusResponse,
+	videoStatusResponseSchema,
+} from "@tubebook/schemas"
 
 const apiHost = process.env.NEXT_PUBLIC_API_HOST
 
-export const statusPoll: QueryFunction<any, ["smart-poll", string]> = async ({
-	queryKey,
-	signal,
-}) => {
+export const statusPoll: QueryFunction<
+	VideoStatusResponse,
+	["smart-poll", string]
+> = async ({ queryKey, signal }) => {
 	const [, videoId] = queryKey
 
 	const r = await fetch(`${apiHost}/api/video/${videoId}/status`, {
@@ -22,5 +26,5 @@ export const statusPoll: QueryFunction<any, ["smart-poll", string]> = async ({
 		})
 	}
 
-	return body
+	return videoStatusResponseSchema.parse(body)
 }

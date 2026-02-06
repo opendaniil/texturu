@@ -1,3 +1,3 @@
-import type { addVideo } from "./add-video"
+import { addVideo } from "./add-video"
 
-export type { addVideo }
+export { addVideo }

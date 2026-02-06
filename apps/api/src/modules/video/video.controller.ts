@@ -40,8 +40,8 @@ export class VideoController {
 
 	@Get(":id")
 	@ApiOkResponse({ type: VideoResponseDto })
-	findOne(@Param() { id }: VideoIdDto) {
-		const result = this.videoService.findOne(id)
+	async findOne(@Param() { id }: VideoIdDto) {
+		const result = await this.videoService.findOne(id)
 		if (!result) {
 			throw new NotFoundException()
 		}

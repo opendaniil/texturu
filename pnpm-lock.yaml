@@ -31,6 +31,9 @@ importers:
       '@nestjs/terminus':
         specifier: ^11.0.0
         version: 11.0.0(@nestjs/common@11.1.12(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@tubebook/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       bullmq:
         specifier: ^5.67.2
         version: 5.67.2
@@ -165,6 +168,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.90.20
         version: 5.90.20(react@19.2.3)
+      '@tubebook/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -216,6 +222,16 @@ importers:
         version: 4.1.18
       typescript:
         specifier: ^5
+        version: 5.9.3
+
+  packages/schemas:
+    dependencies:
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
         version: 5.9.3
 
 packages:

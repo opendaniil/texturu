@@ -22,9 +22,10 @@ export class VideoJobWorker extends WorkerHost {
 	async process(job: Job<ProcessPayload>) {
 		console.log(">", JSON.stringify({ job }, null, 2))
 
-		if (job.name !== "process") return
+		return
+		// if (job.name !== "process") return
 
-		const { videoId } = job.data
+		// const { videoId } = job.data
 
 		// await this.uow.run(async (trx) => {
 		// 	const claimed = await this.videoJobRepo.claim(videoId, trx)

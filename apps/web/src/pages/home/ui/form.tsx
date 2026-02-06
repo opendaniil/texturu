@@ -14,8 +14,8 @@ import {
 	FieldLabel,
 } from "@/shared/ui/field"
 import { Input } from "@/shared/ui/input"
-import { addVideo } from "../api/add-video"
-import { linkSchema } from "../model/link-schema"
+import { addVideo } from "../api"
+import { linkSchema } from "../model"
 
 const formSchema = z.object({
 	text: linkSchema,
@@ -32,7 +32,7 @@ export function Form() {
 
 	const form = useForm({
 		defaultValues: {
-			text: "https://www.youtube.com/watch?v=UEQSkaqrMZA&pp=ygUEdGVzdNIHCQmRCgGHKiGM7w%3D%3D",
+			text: "https://www.youtube.com/watch?v=UEQSkaqrMZA&pp=ygUEdGVzdA%3D%3D",
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -40,8 +40,11 @@ export function Form() {
 		},
 		onSubmit: async ({ value }) => {
 			const parsed = formSchema.parse(value)
-			// Use mutation to add video; source defaults to "youtube"
-			await addVideoMutation.mutateAsync({ externalId: parsed.text })
+
+			await addVideoMutation.mutateAsync({
+				source: "youtube",
+				externalId: parsed.text,
+			})
 		},
 	})
 

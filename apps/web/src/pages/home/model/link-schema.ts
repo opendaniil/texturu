@@ -1,6 +1,6 @@
+import { VIDEO_ID_RE } from "@tubebook/schemas"
 import { z } from "zod"
 
-const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/
 const SCHEME_RE = /^[a-z][a-z0-9+.-]*:\/\//i
 const URL_LIKE_RE = /^(https?:\/\/|www\.)/i
 
@@ -13,19 +13,17 @@ type ParseResult =
 const ok = (videoId: string): ParseResult => ({ ok: true, videoId })
 const fail = (error: ParseError): ParseResult => ({ ok: false, error })
 
-function looksLikeUrl(s: string): boolean {
-	return URL_LIKE_RE.test(s) || s.includes(".")
+function looksLikeUrl(value: string): boolean {
+	return URL_LIKE_RE.test(value) || value.includes(".")
 }
 
 function parseYouTubeInput(input: string): ParseResult {
-	// 1. Голый videoId
 	if (!looksLikeUrl(input)) {
 		return VIDEO_ID_RE.test(input)
 			? ok(input)
 			: fail("Неверный формат YouTube-ссылки")
 	}
 
-	// 2. Парсим как URL
 	const hasScheme = SCHEME_RE.test(input)
 
 	let url: URL
@@ -39,7 +37,6 @@ function parseYouTubeInput(input: string): ParseResult {
 	const isShortUrl = hostname === "youtu.be"
 	const isFullUrl = hostname === "www.youtube.com"
 
-	// 3. Проверка домена
 	if (!isShortUrl && !isFullUrl) {
 		return fail(
 			URL_LIKE_RE.test(input)
@@ -48,12 +45,10 @@ function parseYouTubeInput(input: string): ParseResult {
 		)
 	}
 
-	// 4. Протокол: если указан явно — только https
 	if (hasScheme && protocol !== "https:") {
 		return fail("Неверный формат YouTube-ссылки")
 	}
 
-	// 5. youtu.be/<id> — требует явный https://
 	if (isShortUrl) {
 		if (!hasScheme) return fail("Неверный формат YouTube-ссылки")
 
@@ -65,13 +60,14 @@ function parseYouTubeInput(input: string): ParseResult {
 			: fail("Неверный формат YouTube-ссылки")
 	}
 
-	// 6. www.youtube.com/watch?v=<id>
 	if (pathname !== "/watch") return fail("Неверный формат YouTube-ссылки")
 
-	const v = searchParams.get("v")
-	if (!v) return fail("Неверный формат YouTube-ссылки")
+	const videoId = searchParams.get("v")
+	if (!videoId) return fail("Неверный формат YouTube-ссылки")
 
-	return VIDEO_ID_RE.test(v) ? ok(v) : fail("Неверный формат YouTube-ссылки")
+	return VIDEO_ID_RE.test(videoId)
+		? ok(videoId)
+		: fail("Неверный формат YouTube-ссылки")
 }
 
 export const linkSchema = z
@@ -85,5 +81,3 @@ export const linkSchema = z
 		ctx.addIssue({ code: "custom", message: result.error })
 		return z.NEVER
 	})
-
-export type YouTubeVideoId = z.infer<typeof linkSchema>

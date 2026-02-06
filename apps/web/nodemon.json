@@ -1,0 +1,8 @@
+{
+	"watch": ["../../packages/schemas/dist"],
+	"ext": "ts,js,json",
+	"ignore": ["dist", "node_modules"],
+	"exec": "pnpm run start:dev",
+	"legacyWatch": true,
+	"delay": "200"
+}

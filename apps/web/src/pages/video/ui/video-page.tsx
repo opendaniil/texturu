@@ -11,6 +11,12 @@ export default function VideoPage({ params }: { params: Params }) {
 		params.slug
 	)
 
+	const statusLabel = isError
+		? "error"
+		: isLoading
+			? "loading"
+			: (data?.status ?? "unknown")
+
 	return (
 		<div className="h-screen w-full flex flex-col items-center justify-center">
 			{data?.externalId && (
@@ -21,14 +27,9 @@ export default function VideoPage({ params }: { params: Params }) {
 			)}
 
 			<div>Video: {params.slug}</div>
-
-			<pre>
-				{JSON.stringify(
-					{ data, isLoading, isFetching, isError, error },
-					null,
-					2
-				)}
-			</pre>
+			<div>Status: {statusLabel}</div>
+			{isFetching && !isLoading && <div>Refreshing status...</div>}
+			{isError && <div>{error.message}</div>}
 		</div>
 	)
 }
