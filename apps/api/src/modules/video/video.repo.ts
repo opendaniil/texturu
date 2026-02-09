@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { Selectable, sql } from "kysely"
+import { Selectable, sql, Updateable } from "kysely"
 import { Database } from "src/infra/database/database.module"
 import { InjectDb } from "src/infra/database/inject.decorator"
 import { CreateVideoDto } from "./dto/create-video.dto"
@@ -49,6 +49,47 @@ export class VideoRepo {
 			.executeTakeFirst()
 
 		if (!row) return null
+		return this.map(row)
+	}
+
+	async updateCaptionsResult(
+		videoId: string,
+		params: {
+			status: Video["status"]
+			statusMessage: string
+			meta: Video["meta"]
+		},
+		executor: InjectDb.Client = this.db
+	) {
+		return this.updateStatus(videoId, params, executor)
+	}
+
+	async updateStatus(
+		videoId: string,
+		params: {
+			status: Video["status"]
+			statusMessage: string
+			meta?: Video["meta"]
+		},
+		executor: InjectDb.Client = this.db
+	) {
+		const patch: Updateable<Database["videos"]> = {
+			status: params.status,
+			statusMessage: params.statusMessage,
+			updatedAt: new Date(),
+		}
+
+		if (params.meta !== undefined) {
+			patch.meta = params.meta
+		}
+
+		const row = await executor
+			.updateTable("videos")
+			.set(patch)
+			.where("id", "=", videoId)
+			.returningAll()
+			.executeTakeFirstOrThrow()
+
 		return this.map(row)
 	}
 }

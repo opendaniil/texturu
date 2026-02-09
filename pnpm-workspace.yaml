@@ -2,3 +2,12 @@ packages:
   - apps/**
   - libs/**
   - packages/**
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - esbuild
+  - msgpackr-extract
+  - msw
+  - sharp
+  - unrs-resolver

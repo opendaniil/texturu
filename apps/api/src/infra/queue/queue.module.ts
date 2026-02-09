@@ -15,14 +15,12 @@ export const QUEUES = {
 			inject: [AppConfigService],
 			useFactory: (cfg: AppConfigService) => ({
 				connection: {
-					url: `${cfg.get("REDIS_HOST")}:${cfg.get("REDIS_PORT")}`,
+					host: cfg.get("REDIS_HOST"),
+					port: cfg.get("REDIS_PORT"),
 				},
-
 				prefix: "bull",
 			}),
 		}),
-
-		BullModule.registerQueue({ name: QUEUES.VIDEO_JOB }),
 	],
 	exports: [BullModule],
 })

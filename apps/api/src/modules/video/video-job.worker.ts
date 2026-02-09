@@ -1,51 +1,128 @@
+import fs from "node:fs/promises"
+import path from "node:path"
 import { Processor, WorkerHost } from "@nestjs/bullmq"
-import { Injectable } from "@nestjs/common"
+import { Inject, Injectable } from "@nestjs/common"
 import { Job } from "bullmq"
+import { AppConfigService } from "src/infra/app-config/app-config.service"
 import { UowService } from "src/infra/database/unit-of-work.service"
 import { QUEUES } from "src/infra/queue/queue.module"
+import { VideoInfo, YtDlp } from "ytdlp-nodejs"
 import { VideoRepo } from "./video.repo"
 import { VideoJobRepo } from "./video-job.repo"
 
-type ProcessPayload = { videoId: string }
+type ProcessPayload = { videoId: string; source: string; externalId: string }
+const TARGET_SUBTITLE_LANGS = ["ru", "en"] as const
+
+type SubtitleTrack = {
+	ext: string
+	url: string
+	name: string
+}
 
 @Processor(QUEUES.VIDEO_JOB)
 @Injectable()
 export class VideoJobWorker extends WorkerHost {
+	private readonly ytdlp: YtDlp
 	constructor(
 		private readonly uow: UowService,
 		private readonly videoJobRepo: VideoJobRepo,
-		private readonly videoRepo: VideoRepo
+		private readonly videoRepo: VideoRepo,
+		@Inject() private readonly appConfig: AppConfigService
 	) {
 		super()
+		this.ytdlp = new YtDlp({
+			binaryPath: "/usr/bin/yt-dlp",
+		})
 	}
 
 	async process(job: Job<ProcessPayload>) {
 		console.log(">", JSON.stringify({ job }, null, 2))
 
+		const { videoId, externalId } = job.data
+
+		if (job.name === "fetching_captions") {
+			await this.downloadSubtitles(videoId, externalId)
+		}
+
 		return
-		// if (job.name !== "process") return
+	}
 
-		// const { videoId } = job.data
+	private async downloadSubtitles(videoId: string, youtubeId: string) {
+		const youtubeUrl = `https://www.youtube.com/watch?v=${youtubeId}`
+		const proxy = this.appConfig.get("YTDLP_PROXY")
 
-		// await this.uow.run(async (trx) => {
-		// 	const claimed = await this.videoJobRepo.claim(videoId, trx)
-		// 	if (!claimed) {
-		// 		// уже обработано/в процессе/ошибка — значит это дубль сигнала
-		// 		return
-		// 	}
+		const info = await this.ytdlp.getInfoAsync(youtubeUrl, {
+			// @ts-expect-error
+			rawArgs: ["--proxy", proxy],
+		})
 
-		// 	try {
-		// 		const video = await this.videoRepo.findById(videoId, trx)
-		// 		if (!video) throw new Error("Video not found")
+		if ("playlist_count" in info) {
+			throw new Error("Playlist not supported")
+		} else {
+			const videoInfo = info as VideoInfo
+			const title = videoInfo.title
+			const subtitles = videoInfo.subtitles
+			const automaticCaptions = videoInfo.automatic_captions
+			const targetSubtitles = this.grabTargetSubtitles(
+				subtitles,
+				automaticCaptions
+			)
 
-		// 		// TODO: твоя логика обработки видео (скачивание субтитров, транскодинг, etc)
-		// 		// Тут же обновляй videos.status / statusMessage
+			const hasSubtitles = Object.keys(targetSubtitles).length > 0
+			await this.videoRepo.updateCaptionsResult(videoId, {
+				status: hasSubtitles ? "done" : "no_captions",
+				statusMessage: hasSubtitles
+					? ""
+					: "No subtitles found for target languages",
+				meta: hasSubtitles ? { title, subtitles: targetSubtitles } : { title },
+			})
+		}
+	}
 
-		// 		await this.videoJobRepo.markDone(videoId, trx)
-		// 	} catch (e: any) {
-		// 		await this.videoJobRepo.markError(videoId, String(e?.message ?? e), trx)
-		// 		throw e // чтобы BullMQ тоже видел fail (для метрик/событий)
-		// 	}
-		// })
+	private grabTargetSubtitles(
+		subtitles: VideoInfo["subtitles"],
+		autoCaptions: VideoInfo["automatic_captions"]
+	) {
+		const result: Record<
+			string,
+			{ source: "subtitles" | "automatic_captions"; track: SubtitleTrack }
+		> = {}
+
+		for (const lang of TARGET_SUBTITLE_LANGS) {
+			const subtitleTrack = this.findSubtitleTrack(subtitles, lang)
+			if (subtitleTrack) {
+				result[lang] = {
+					source: "subtitles",
+					track: subtitleTrack,
+				}
+				continue
+			}
+
+			const autoTrack = this.findSubtitleTrack(autoCaptions, lang)
+			if (autoTrack) {
+				result[lang] = {
+					source: "automatic_captions",
+					track: autoTrack,
+				}
+			}
+		}
+
+		return result
+	}
+
+	private findSubtitleTrack(
+		subs: VideoInfo["subtitles"],
+		lang: string
+	): SubtitleTrack | null {
+		const key =
+			Object.keys(subs).find((k) => k === lang) ||
+			Object.keys(subs).find((k) => k.startsWith(`${lang}-`))
+
+		if (!key) {
+			return null
+		}
+
+		const group = subs[key]
+		return group.find((s) => s.ext === "json3") || group[0] || null
 	}
 }

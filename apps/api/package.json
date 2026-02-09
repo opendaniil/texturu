@@ -10,7 +10,7 @@
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
 		"start": "nest start",
 		"dev": "nodemon --config nodemon.json",
-		"start:dev": "pnpm db:types && nest start",
+		"start:dev": "pnpm db:migrate && pnpm db:types && nest start",
 		"start:debug": "nest start --debug --watch",
 		"start:prod": "node dist/main",
 		"test": "jest",
@@ -18,11 +18,11 @@
 		"test:cov": "jest --coverage",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
 		"test:e2e": "jest --config ./test/jest-e2e.json",
+		"db:migrate": "kysely migrate latest",
 		"db:types": "kysely-codegen",
 		"db:make": "kysely migrate make"
 	},
 	"dependencies": {
-		"@tubebook/schemas": "workspace:*",
 		"@nestjs/bullmq": "^11.0.4",
 		"@nestjs/common": "^11.0.1",
 		"@nestjs/config": "^4.0.2",
@@ -30,6 +30,7 @@
 		"@nestjs/platform-express": "^11.0.1",
 		"@nestjs/swagger": "^11.2.5",
 		"@nestjs/terminus": "^11.0.0",
+		"@tubebook/schemas": "workspace:*",
 		"bullmq": "^5.67.2",
 		"joi": "^18.0.2",
 		"kysely": "^0.28.10",
@@ -38,6 +39,7 @@
 		"pg": "^8.17.2",
 		"reflect-metadata": "^0.2.2",
 		"rxjs": "^7.8.1",
+		"ytdlp-nodejs": "^3.4.4",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {

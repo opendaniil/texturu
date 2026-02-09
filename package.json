@@ -4,9 +4,10 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"dev": "pnpm down && pnpm up",
-		"up": "docker compose -f './docker-compose.dev.yml' up --build",
-		"down": "docker compose -f ./docker-compose.dev.yml down && docker volume prune -f",
+		"dev": "pnpm compose:down && pnpm compose:up",
+		"proxy": "socat TCP-LISTEN:1088,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:1087",
+		"compose:up": "docker compose -f './docker-compose.dev.yml' up --build",
+		"compose:down": "docker compose -f ./docker-compose.dev.yml down && docker volume prune -f",
 		"lint": "biome check . --write"
 	},
 	"keywords": [],

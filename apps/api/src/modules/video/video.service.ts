@@ -29,8 +29,12 @@ export class VideoService {
 				await this.videoJobRepo.enqueue(video.id, uow)
 
 				await this.videoQueue.add(
-					"process",
-					{ videoId: video.id },
+					"fetching_captions",
+					{
+						videoId: video.id,
+						source: video.source,
+						externalId: video.externalId,
+					},
 					{
 						jobId: video.id,
 						removeOnComplete: 1000,

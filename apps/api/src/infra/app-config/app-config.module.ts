@@ -6,6 +6,7 @@ import { AppConfigService } from "./app-config.service"
 export interface EnvironmentVariables {
 	NODE_ENV: "development" | "production"
 	API_PORT: number
+	YTDLP_PROXY: string
 
 	POSTGRES_USER: string
 	POSTGRES_PASSWORD: string
@@ -23,6 +24,7 @@ function getSchema() {
 	return Joi.object<EnvironmentVariables>({
 		NODE_ENV: Joi.string().valid("development", "production").required(),
 		API_PORT: Joi.number().required(),
+		YTDLP_PROXY: Joi.string().required(),
 
 		POSTGRES_USER: Joi.string().required(),
 		POSTGRES_PASSWORD: Joi.string().required(),
