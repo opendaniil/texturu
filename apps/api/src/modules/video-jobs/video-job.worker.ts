@@ -1,16 +1,13 @@
-import fs from "node:fs/promises"
-import path from "node:path"
 import { Processor, WorkerHost } from "@nestjs/bullmq"
 import { Inject, Injectable } from "@nestjs/common"
 import { Job } from "bullmq"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
-import { UowService } from "src/infra/database/unit-of-work.service"
 import { QUEUES } from "src/infra/queue/queue.module"
 import { VideoInfo, YtDlp } from "ytdlp-nodejs"
-import { VideoRepo } from "./video.repo"
-import { VideoJobRepo } from "./video-job.repo"
+import { VideoRepo } from "../video/video.repo"
+import { VideoJobsService } from "./video-jobs.service"
 
-type ProcessPayload = { videoId: string; source: string; externalId: string }
+type ProcessPayload = { videoId: string; externalId: string }
 const TARGET_SUBTITLE_LANGS = ["ru", "en"] as const
 
 type SubtitleTrack = {
@@ -24,8 +21,7 @@ type SubtitleTrack = {
 export class VideoJobWorker extends WorkerHost {
 	private readonly ytdlp: YtDlp
 	constructor(
-		private readonly uow: UowService,
-		private readonly videoJobRepo: VideoJobRepo,
+		private readonly videoJobsService: VideoJobsService,
 		private readonly videoRepo: VideoRepo,
 		@Inject() private readonly appConfig: AppConfigService
 	) {
@@ -41,7 +37,23 @@ export class VideoJobWorker extends WorkerHost {
 		const { videoId, externalId } = job.data
 
 		if (job.name === "fetching_captions") {
-			await this.downloadSubtitles(videoId, externalId)
+			await this.videoJobsService.markRunning(videoId)
+			await this.videoRepo.updateStatus(videoId, {
+				status: "processing",
+				statusMessage: "",
+			})
+
+			try {
+				await this.downloadSubtitles(videoId, externalId)
+				await this.videoJobsService.markDone(videoId)
+			} catch (error) {
+				await this.videoJobsService.markError(videoId)
+				await this.videoRepo.updateStatus(videoId, {
+					status: "error",
+					statusMessage: error instanceof Error ? error.message : "Unknown error",
+				})
+				throw error
+			}
 		}
 
 		return
@@ -70,11 +82,11 @@ export class VideoJobWorker extends WorkerHost {
 
 			const hasSubtitles = Object.keys(targetSubtitles).length > 0
 			await this.videoRepo.updateCaptionsResult(videoId, {
-				status: hasSubtitles ? "done" : "no_captions",
-				statusMessage: hasSubtitles
-					? ""
-					: "No subtitles found for target languages",
-				meta: hasSubtitles ? { title, subtitles: targetSubtitles } : { title },
+				status: "done",
+				statusMessage: hasSubtitles ? "" : "No subtitles found for target languages",
+				meta: hasSubtitles
+					? { title, subtitles: targetSubtitles }
+					: { title, subtitles: {} },
 			})
 		}
 	}

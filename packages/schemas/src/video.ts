@@ -36,8 +36,6 @@ export const videoSchema = z.object({
 	updatedAt: stringToDateCodec,
 	status: z.enum([
 		"queued",
-		"fetching_captions",
-		"no_captions",
 		"processing",
 		"done",
 		"error",
