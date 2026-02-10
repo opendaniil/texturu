@@ -14,7 +14,7 @@ export type FetchCaptionsJobPayload = {
 export class VideoJobsService {
 	constructor(
 		private readonly videoJobRepo: VideoJobRepo,
-		@InjectQueue(QUEUES.VIDEO_JOB) private readonly queue: Queue,
+		@InjectQueue(QUEUES.FETCH_CAPTIONS) private readonly queue: Queue,
 		@InjectDb() private readonly db: InjectDb.Client
 	) {}
 

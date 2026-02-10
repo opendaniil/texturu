@@ -4,7 +4,8 @@ import { AppConfigModule } from "../app-config/app-config.module"
 import { AppConfigService } from "../app-config/app-config.service"
 
 export const QUEUES = {
-	VIDEO_JOB: "video-job",
+	FETCH_CAPTIONS: "fetch_captions",
+	PROCESS_CAPTIONS: "process_captions",
 } as const
 
 @Global()
