@@ -27,7 +27,7 @@ export class VideoJobRepo {
 				(oc) =>
 					oc
 						.column("videoId")
-						.where("state", "in", ["queued", "running", "retry_wait"])
+						.where("state", "in", ["queued", "running"])
 						.doUpdateSet({ updatedAt: sql`now()`, payload }) // при конфликте вернуть существующую запись
 			)
 			.returningAll()
@@ -45,7 +45,7 @@ export class VideoJobRepo {
 			.updateTable("videoJobs")
 			.set({ ...patch, updatedAt: new Date() })
 			.where("videoId", "=", videoId)
-			.where("state", "in", ["queued", "running", "retry_wait"])
+			.where("state", "in", ["queued", "running"])
 			.returningAll()
 			.executeTakeFirst()
 

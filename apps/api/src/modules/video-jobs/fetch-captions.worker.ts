@@ -15,16 +15,16 @@ import { VideoJobsService } from "./video-jobs.service"
 
 type ProcessPayload = { videoId: string; externalId: string }
 
-@Processor(QUEUES.FETCH_CAPTIONS)
+@Processor(QUEUES.FETCHING_CAPTIONS)
 @Injectable()
-export class VideoJobWorker extends WorkerHost {
-	private logger = new Logger(VideoJobWorker.name)
+export class FetchCaptionsWorker extends WorkerHost {
+	private logger = new Logger(FetchCaptionsWorker.name)
 	private readonly ytdlp: YtDlp
 	constructor(
 		private readonly videoJobsService: VideoJobsService,
 		private readonly videoRepo: VideoRepo,
 		private readonly videoCaptionRepo: VideoCaptionRepo,
-		@Inject() private readonly appConfig: AppConfigService
+		private readonly appConfig: AppConfigService
 	) {
 		super()
 		this.ytdlp = new YtDlp({
@@ -37,11 +37,11 @@ export class VideoJobWorker extends WorkerHost {
 
 		const { videoId, externalId } = job.data
 
-		if (job.name === "fetching_captions") {
+		if (job.name === QUEUES.FETCHING_CAPTIONS) {
 			await this.videoJobsService.markRunning(videoId)
 			await this.videoRepo.updateStatus(videoId, {
 				status: "processing",
-				statusMessage: "",
+				statusMessage: "fetching captions",
 			})
 
 			try {
@@ -79,7 +79,7 @@ export class VideoJobWorker extends WorkerHost {
 				.subLangs(["en"])
 				.skipDownload()
 				.run()
-				.catch(() => {})
+				.catch(() => {}) // Ошибки yt‑dlp игнорируются, они непредсказуемы и не влияют на получение субтитров
 
 			const path = await this.getSubtitles(videoId)
 
@@ -157,6 +157,7 @@ export class VideoJobWorker extends WorkerHost {
 		return new Promise<string>((resolve, reject) => {
 			const sink = new Writable({
 				objectMode: true,
+				// biome-ignore lint/suspicious/noExplicitAny: нет точного типа
 				write(node: any, _enc, cb) {
 					if (node?.type === "cue") {
 						const t = node.data?.text

@@ -32,13 +32,13 @@ export class VideoCaptionRepo {
 		return this.map(row)
 	}
 
-	async findByVideoId(
+	async findPlainTextByVideoId(
 		videoId: string,
 		executor: InjectDb.Client = this.db
-	): Promise<VideoCaption | null> {
+	): Promise<VideoCaption["plainText"] | null> {
 		const row = await executor
 			.selectFrom("videoCaptions")
-			.selectAll()
+			.select("plainText")
 			.where("videoId", "=", videoId)
 			.executeTakeFirst()
 
@@ -46,6 +46,6 @@ export class VideoCaptionRepo {
 			return null
 		}
 
-		return this.map(row)
+		return row.plainText
 	}
 }

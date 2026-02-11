@@ -4,8 +4,8 @@ import { AppConfigModule } from "../app-config/app-config.module"
 import { AppConfigService } from "../app-config/app-config.service"
 
 export const QUEUES = {
-	FETCH_CAPTIONS: "fetch_captions",
-	PROCESS_CAPTIONS: "process_captions",
+	FETCHING_CAPTIONS: "fetching_captions",
+	GENERATE_ARTICLE: "generate_article",
 } as const
 
 @Global()

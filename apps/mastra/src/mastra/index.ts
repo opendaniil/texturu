@@ -8,39 +8,18 @@ import {
 	Observability,
 	SensitiveDataFilter,
 } from "@mastra/observability"
-import { PgVector, PostgresStore } from "@mastra/pg"
-import { weatherAgent } from "./agents/weather-agent"
-import {
-	completenessScorer,
-	toolCallAppropriatenessScorer,
-	translationScorer,
-} from "./scorers/weather-scorer"
-import { weatherWorkflow } from "./workflows/weather-workflow"
-
-const DATABASE_URL = process.env.DATABASE_URL
-if (!DATABASE_URL) {
-	throw new Error("DATABASE_URL is required")
-}
+import { articleAgent } from "./agents/article-agent"
+import { postgres, postgresVector } from "./store/pg"
+import { articleWorkflow } from "./workflows/article-workflow"
 
 export const mastra = new Mastra({
-	workflows: { weatherWorkflow },
-	agents: { weatherAgent },
-	scorers: {
-		toolCallAppropriatenessScorer,
-		completenessScorer,
-		translationScorer,
-	},
+	workflows: { articleWorkflow },
+	agents: { articleAgent },
 
 	memory: {
 		default: new Memory({
-			storage: new PostgresStore({
-				id: "pg-storage",
-				connectionString: DATABASE_URL,
-			}),
-			vector: new PgVector({
-				id: "pg-vector",
-				connectionString: DATABASE_URL,
-			}),
+			storage: postgres,
+			vector: postgresVector,
 		}),
 	},
 

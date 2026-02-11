@@ -5,12 +5,7 @@ export const videoJobSchema = z.object({
 
 	videoId: z.uuidv7(),
 	payload: z.any(),
-	state: z.enum(["queued", "running", "retry_wait", "done", "error"]),
-
-	attempt: z.number(),
-	maxAttempts: z.number(),
-
-	runAt: z.date(),
+	state: z.enum(["queued", "running", "done", "error"]),
 	startedAt: z.date().nullable(),
 	finishedAt: z.date().nullable(),
 	createdAt: z.date(),

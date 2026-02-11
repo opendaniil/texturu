@@ -6,20 +6,8 @@ const stringToDateCodec = z.codec(z.iso.datetime(), z.date(), {
 })
 
 export const videoMetaSchema = z.object({
-	title: z.string(),
-	subtitles: z
-		.record(
-			z.string(),
-			z.object({
-				source: z.enum(["subtitles", "automatic_captions"]),
-				track: z.object({
-					ext: z.string(),
-					url: z.string(),
-					name: z.string(),
-				}),
-			})
-		)
-		.optional(),
+	title: z.string().optional(),
+	article: z.string().optional(),
 })
 
 export const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/
@@ -34,12 +22,7 @@ export const videoSchema = z.object({
 	externalId: videoExternalIdSchema,
 	createdAt: stringToDateCodec,
 	updatedAt: stringToDateCodec,
-	status: z.enum([
-		"queued",
-		"processing",
-		"done",
-		"error",
-	]),
+	status: z.enum(["queued", "processing", "done", "error"]),
 	statusMessage: z.string(),
 	meta: z.union([z.null(), videoMetaSchema]),
 })

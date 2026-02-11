@@ -1,8 +1,4 @@
-import {
-	Inject,
-	Injectable,
-	InternalServerErrorException,
-} from "@nestjs/common"
+import { Inject, Injectable } from "@nestjs/common"
 import { UowService } from "src/infra/database/unit-of-work.service"
 import {
 	type FetchCaptionsJobPayload,
@@ -26,7 +22,10 @@ export class VideoService {
 		createVideoDto: CreateVideoDto
 	): Promise<CreateVideoResponseDto> {
 		const { video, dispatchPayload } = await this.uow.run(async (uow) => {
-			const video = await this.videoRepo.create(createVideoDto, uow)
+			const video = await this.videoRepo.createOrGetByExternalId(
+				createVideoDto,
+				uow
+			)
 			let dispatchPayload: FetchCaptionsJobPayload | null = null
 
 			if (video.isNew) {

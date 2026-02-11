@@ -33,13 +33,10 @@ export interface VideoCaptions {
 }
 
 export interface VideoJobs {
-  attempt: Generated<number>;
   createdAt: Generated<Timestamp>;
   finishedAt: Timestamp | null;
   id: Generated<string>;
-  maxAttempts: Generated<number>;
   payload: Generated<Json>;
-  runAt: Generated<Timestamp>;
   startedAt: Timestamp | null;
   state: Generated<string>;
   updatedAt: Generated<Timestamp>;

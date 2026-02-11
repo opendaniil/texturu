@@ -18,6 +18,8 @@ export interface EnvironmentVariables {
 
 	REDIS_PORT: number
 	REDIS_HOST: string
+
+	MASTRA_HOST: string
 }
 
 function getSchema() {
@@ -36,6 +38,8 @@ function getSchema() {
 
 		REDIS_PORT: Joi.number().required(),
 		REDIS_HOST: Joi.string().required(),
+
+		MASTRA_HOST: Joi.string().required(),
 	})
 }
 

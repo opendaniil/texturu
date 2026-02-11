@@ -23,6 +23,8 @@
     "db:make": "kysely migrate make"
   },
   "dependencies": {
+    "@mastra/client-js": "^1.2.0",
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -31,6 +33,7 @@
     "@nestjs/swagger": "^11.2.5",
     "@nestjs/terminus": "^11.0.0",
     "@tubebook/schemas": "workspace:*",
+    "axios": "^1.13.5",
     "bullmq": "^5.67.2",
     "joi": "^18.0.2",
     "kysely": "^0.28.11",
