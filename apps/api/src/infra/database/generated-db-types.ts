@@ -23,6 +23,15 @@ export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface VideoArticles {
+  article: string;
+  createdAt: Generated<Timestamp>;
+  id: Generated<string>;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+  videoId: string;
+}
+
 export interface VideoCaptions {
   createdAt: Generated<Timestamp>;
   id: Generated<string>;
@@ -30,17 +39,6 @@ export interface VideoCaptions {
   updatedAt: Generated<Timestamp>;
   videoId: string;
   vttText: string;
-}
-
-export interface VideoJobs {
-  createdAt: Generated<Timestamp>;
-  finishedAt: Timestamp | null;
-  id: Generated<string>;
-  payload: Generated<Json>;
-  startedAt: Timestamp | null;
-  state: Generated<string>;
-  updatedAt: Generated<Timestamp>;
-  videoId: string;
 }
 
 export interface Videos {
@@ -56,7 +54,7 @@ export interface Videos {
 }
 
 export interface DB {
+  videoArticles: VideoArticles;
   videoCaptions: VideoCaptions;
-  videoJobs: VideoJobs;
   videos: Videos;
 }

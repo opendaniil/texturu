@@ -2,8 +2,8 @@ import { createReadStream } from "node:fs"
 import { readdir, readFile, rm } from "node:fs/promises"
 import { join } from "node:path"
 import { Writable } from "node:stream"
-import { Processor, WorkerHost } from "@nestjs/bullmq"
-import { Inject, Injectable, Logger } from "@nestjs/common"
+import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
+import { Injectable, Logger } from "@nestjs/common"
 import { Job } from "bullmq"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
 import { QUEUES } from "src/infra/queue/queue.module"
@@ -11,15 +11,16 @@ import { parse } from "subtitle"
 import { YtDlp } from "ytdlp-nodejs"
 import { VideoRepo } from "../video/video.repo"
 import { VideoCaptionRepo } from "../video/video-caption.repo"
-import { VideoJobsService } from "./video-jobs.service"
+import { FetchCaptionsJobData, VideoJobsService } from "./video-jobs.service"
 
-type ProcessPayload = { videoId: string; externalId: string }
+type ProcessPayload = FetchCaptionsJobData
 
 @Processor(QUEUES.FETCHING_CAPTIONS)
 @Injectable()
 export class FetchCaptionsWorker extends WorkerHost {
 	private logger = new Logger(FetchCaptionsWorker.name)
 	private readonly ytdlp: YtDlp
+
 	constructor(
 		private readonly videoJobsService: VideoJobsService,
 		private readonly videoRepo: VideoRepo,
@@ -33,33 +34,73 @@ export class FetchCaptionsWorker extends WorkerHost {
 	}
 
 	async process(job: Job<ProcessPayload>) {
-		console.log(">", JSON.stringify({ job }, null, 2))
-
 		const { videoId, externalId } = job.data
 
-		if (job.name === QUEUES.FETCHING_CAPTIONS) {
-			await this.videoJobsService.markRunning(videoId)
+		try {
+			this.logger.log(`Start jobId=${job.id} attempt=${job.attemptsMade + 1}`)
 			await this.videoRepo.updateStatus(videoId, {
 				status: "processing",
 				statusMessage: "fetching captions",
 			})
 
-			try {
-				await this.downloadAndSaveSubtitles(videoId, externalId)
-				await this.videoJobsService.markDone(videoId)
-			} catch (error) {
-				this.logger.error(error)
-				await this.videoJobsService.markError(videoId)
-				await this.videoRepo.updateStatus(videoId, {
-					status: "error",
-					statusMessage:
-						error instanceof Error ? error.message : "Unknown error",
-				})
-				throw error
-			}
+			await this.downloadAndSaveSubtitles(videoId, externalId)
+
+			// Next step
+			await this.videoJobsService.enqueueGenerateArticle({ videoId })
+		} catch (error) {
+			this.logger.error(
+				`Failed jobId=${job.id} attempt=${job.attemptsMade + 1}`,
+				error instanceof Error ? error.stack : undefined
+			)
+			throw error
+		}
+	}
+
+	@OnWorkerEvent("failed")
+	async onFailed(job: Job<ProcessPayload> | undefined, error: Error) {
+		if (!job) {
+			this.logger.warn(
+				"Failed event without job (likely removed by removeOnFail)"
+			)
+			return
 		}
 
-		return
+		const isFinalAttempt =
+			job.attemptsMade >= Math.max(1, job.opts.attempts ?? 1)
+		if (!isFinalAttempt) {
+			return
+		}
+
+		const message = (error?.message ?? "Unknown error").trim()
+		this.logger.error(
+			`Final failure jobId=${job.id} attempts=${job.attemptsMade}`,
+			error.stack
+		)
+
+		try {
+			await this.videoRepo.updateStatus(job.data.videoId, {
+				status: "error",
+				statusMessage: message,
+			})
+		} catch (updateError) {
+			this.logger.error(
+				`Failed to update video status for jobId=${job.id}`,
+				updateError instanceof Error ? updateError.stack : undefined
+			)
+		}
+	}
+
+	@OnWorkerEvent("error")
+	onWorkerError(error: Error) {
+		this.logger.error(
+			`Worker error`,
+			error instanceof Error ? error.stack : undefined
+		)
+	}
+
+	@OnWorkerEvent("stalled")
+	onStalled(jobId: string, prev: string) {
+		this.logger.warn(`Stalled jobId=${jobId} prev=${prev}`)
 	}
 
 	private async downloadAndSaveSubtitles(videoId: string, youtubeId: string) {
@@ -67,23 +108,37 @@ export class FetchCaptionsWorker extends WorkerHost {
 		const proxy = this.appConfig.get("YOUTUBE_PROXY")
 
 		try {
+			// list-subs не работает, поэтому скачиваем перебором первые доступные
+			const langPriority = ["en-orig", "ru-orig", "en", "ru"]
 			await this.removeTempSubtitles(videoId)
 
-			await this.ytdlp
-				.download(youtubeUrl)
-				.proxy(proxy)
-				.setOutputTemplate(`temp/${videoId}/%(id)s.%(ext)s`)
-				.addOption("subFormat", "vtt")
-				.writeSubs()
-				.writeAutoSubs()
-				.subLangs(["en"])
-				.skipDownload()
-				.run()
-				.catch(() => {}) // Ошибки yt‑dlp игнорируются, они непредсказуемы и не влияют на получение субтитров
+			let path: string | null = null
+			for (const lang of langPriority) {
+				await this.removeTempSubtitles(videoId)
 
-			const path = await this.getSubtitles(videoId)
+				await this.ytdlp
+					.download(youtubeUrl)
+					.proxy(proxy)
+					.setOutputTemplate(`temp/${videoId}/%(id)s.%(ext)s`)
+					.addOption("subFormat", "vtt")
+					.writeSubs()
+					.writeAutoSubs()
+					.subLangs([lang])
+					.skipDownload()
+					.run()
+					.catch() // Ошибки yt‑dlp игнорируются, они непредсказуемы и не влияют на получение субтитров
 
-			const vttText = await this.readFile(path)
+				path = await this.getSubtitlePath(videoId)
+				if (path) {
+					break
+				}
+			}
+
+			if (!path) {
+				throw new Error(`No .vtt subtitle files found for video ${videoId}`)
+			}
+
+			const vttText = await readFile(path, { encoding: "utf8" })
 			const plainText = await this.convertToPlainText(path)
 
 			await this.videoCaptionRepo.upsertByVideoId({
@@ -96,27 +151,23 @@ export class FetchCaptionsWorker extends WorkerHost {
 		}
 	}
 
-	private async removeTempSubtitles(videoId: string) {
-		const tempDir = join(process.cwd(), "temp", videoId)
-		await rm(tempDir, { recursive: true, force: true })
-	}
-
-	private async getSubtitles(videoId: string): Promise<string> {
+	private async getSubtitlePath(videoId: string): Promise<string | null> {
 		const tempDir = join(process.cwd(), "temp", videoId)
 
 		const entries = await readdir(tempDir, { withFileTypes: true })
-		const file = entries.find((e) => e.isFile() && e.name.endsWith(".en.vtt"))
+		const file = entries.find((e) => e.isFile() && e.name.endsWith(".vtt"))
 
 		if (!file) {
-			throw new Error(`No .vtt subtitle files found for video ${videoId}`)
+			return null
 		}
 
 		const path = join(tempDir, file.name)
 		return path
 	}
 
-	private readFile(path: string) {
-		return readFile(path, { encoding: "utf8" })
+	private async removeTempSubtitles(videoId: string) {
+		const tempDir = join(process.cwd(), "temp", videoId)
+		await rm(tempDir, { recursive: true, force: true })
 	}
 
 	private convertToPlainText(path: string): Promise<string> {

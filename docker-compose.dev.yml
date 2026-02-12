@@ -1,33 +1,17 @@
 name: tubebook-dev
 
 services:
-  schemas:
-    build:
-      context: .
-      dockerfile: ./apps/web/Dockerfile.dev
-      args:
-        FOLDER: packages/schemas
-    volumes:
-      - ./:/app
-      # Exclude to avoid conflicts
-      - /app/node_modules
-      - /app/packages/schemas/node_modules
-    environment:
-      # for local development
-      CHOKIDAR_USEPOLLING: "true"
-      CHOKIDAR_INTERVAL: "500"
-    command: "pnpm --filter @tubebook/schemas dev"
-    restart: unless-stopped
-
   api:
     build:
       context: .
       dockerfile: ./apps/api/Dockerfile.dev
     depends_on:
-      schemas:
-        condition: service_started
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      schemas:
+        condition: service_started
     volumes:
       - ./:/app
       # Exclude to avoid conflicts
@@ -81,28 +65,55 @@ services:
     networks:
       - database_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h 127.0.0.1 -p 5432" ]
       interval: 5s
-      timeout: 5s
-      retries: 5
+      timeout: 3s
+      retries: 20
     user: postgres
 
   redis:
     image: redis:8-alpine
+    # volumes:
+    #   - redis-data:/data
     ports:
       # for local development
       - '127.0.0.1:${REDIS_PORT}:6379'
     networks:
       - redis_network
+    command: >
+      redis-server --appendonly yes --appendfsync everysec --maxmemory 512mb --maxmemory-policy noeviction
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  schemas:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile.dev
+      args:
+        FOLDER: packages/schemas
+    volumes:
+      - ./:/app
+      # Exclude to avoid conflicts
+      - /app/node_modules
+      - /app/packages/schemas/node_modules
+    environment:
+      # for local development
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "500"
+    command: "pnpm --filter @tubebook/schemas dev"
+    restart: unless-stopped
 
   web:
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile.dev
     depends_on:
-      schemas:
-        condition: service_started
       api:
+        condition: service_started
+      schemas:
         condition: service_started
     volumes:
       - ./:/app
@@ -132,3 +143,4 @@ networks:
 
 volumes:
   postgres-data:
+  redis-data:

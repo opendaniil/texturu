@@ -7,7 +7,6 @@ import {
 import { AppConfigService } from "../app-config/app-config.service"
 import type { DB } from "./database.module"
 import { DB_TOKEN } from "./database.tokens"
-import { migrateToLatest } from "./tasks/migrate"
 import { pingDatabase } from "./tasks/ping"
 
 @Injectable()
@@ -18,8 +17,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 	) {}
 
 	async onModuleInit() {
-		await migrateToLatest(this.db)
-
 		if (!this.config.isProd) {
 			await pingDatabase(this.db)
 		}

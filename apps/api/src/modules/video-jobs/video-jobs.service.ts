@@ -1,57 +1,86 @@
 import { InjectQueue } from "@nestjs/bullmq"
 import { Injectable } from "@nestjs/common"
 import { Queue } from "bullmq"
-import { InjectDb } from "src/infra/database/inject.decorator"
 import { QUEUES } from "src/infra/queue/queue.module"
-import { VideoJobRepo } from "./video-job.repo"
 
-export type FetchCaptionsJobPayload = {
+export type FetchCaptionsJobData = {
 	videoId: string
 	externalId: string
+}
+
+export type GenerateArticleJobData = {
+	videoId: string
+}
+
+export class VideoJobEnqueueError extends Error {
+	constructor(message: string, cause?: unknown) {
+		super(message, { cause })
+		this.name = "VideoJobEnqueueError"
+	}
+}
+
+const DEFAULT_JOB_OPTIONS = {
+	attempts: 3,
+	backoff: {
+		type: "exponential" as const,
+		delay: 5000,
+	},
+	removeOnComplete: 1000,
+	removeOnFail: 1000,
 }
 
 @Injectable()
 export class VideoJobsService {
 	constructor(
-		private readonly videoJobRepo: VideoJobRepo,
-		@InjectQueue(QUEUES.FETCHING_CAPTIONS) private readonly queue: Queue,
-		@InjectDb() private readonly db: InjectDb.Client
+		@InjectQueue(QUEUES.FETCHING_CAPTIONS) private readonly fetchQueue: Queue,
+		@InjectQueue(QUEUES.GENERATE_ARTICLE) private readonly generateQueue: Queue
 	) {}
 
-	async upsertFetchCaptionsJob(
-		payload: FetchCaptionsJobPayload,
-		executor: InjectDb.Client = this.db
+	async enqueueFetchCaptions(payload: FetchCaptionsJobData) {
+		await this.enqueue(
+			this.fetchQueue,
+			QUEUES.FETCHING_CAPTIONS,
+			payload,
+			this.toFetchJobId(payload.videoId),
+			payload.videoId
+		)
+	}
+
+	async enqueueGenerateArticle(payload: GenerateArticleJobData) {
+		await this.enqueue(
+			this.generateQueue,
+			QUEUES.GENERATE_ARTICLE,
+			payload,
+			this.toGenerateJobId(payload.videoId),
+			payload.videoId
+		)
+	}
+
+	private async enqueue<TData extends { videoId: string }>(
+		queue: Queue,
+		name: string,
+		payload: TData,
+		jobId: string,
+		videoId: string
 	) {
-		await this.videoJobRepo.enqueue(payload.videoId, payload, executor)
+		try {
+			await queue.add(name, payload, {
+				...DEFAULT_JOB_OPTIONS,
+				jobId,
+			})
+		} catch (error) {
+			throw new VideoJobEnqueueError(
+				`Failed to enqueue ${name} for video ${videoId}`,
+				error
+			)
+		}
 	}
 
-	async dispatchFetchCaptionsJob(payload: FetchCaptionsJobPayload) {
-		await this.queue.add("fetching_captions", payload, {
-			jobId: payload.videoId,
-			removeOnComplete: 1000,
-			removeOnFail: 1000,
-		})
+	private toFetchJobId(videoId: string): string {
+		return `${QUEUES.FETCHING_CAPTIONS}-${videoId}`
 	}
 
-	async markRunning(videoId: string) {
-		await this.videoJobRepo.updateActive(videoId, {
-			state: "running",
-			startedAt: new Date(),
-			finishedAt: null,
-		})
-	}
-
-	async markDone(videoId: string) {
-		await this.videoJobRepo.updateActive(videoId, {
-			state: "done",
-			finishedAt: new Date(),
-		})
-	}
-
-	async markError(videoId: string) {
-		await this.videoJobRepo.updateActive(videoId, {
-			state: "error",
-			finishedAt: new Date(),
-		})
+	private toGenerateJobId(videoId: string): string {
+		return `${QUEUES.GENERATE_ARTICLE}-${videoId}`
 	}
 }

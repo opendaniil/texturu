@@ -12,7 +12,9 @@ export class MastraService {
 		})
 	}
 
-	async generateArticle(subtitles: string) {
+	async generateArticle(
+		subtitles: string
+	): Promise<{ title: string; article: string }> {
 		const workflow = this.client.getWorkflow("articleWorkflow")
 		const run = await workflow.createRun()
 
@@ -26,11 +28,14 @@ export class MastraService {
 			throw new Error("Workflow failed to generate article")
 		}
 
-		const article = (result.result as { article?: unknown }).article
-		if (typeof article !== "string") {
-			throw new Error("Invalid workflow response: article is not a string")
+		const payload = result.result as {
+			title: string
+			article: string
 		}
 
-		return article
+		return {
+			title: payload.title,
+			article: payload.article,
+		}
 	}
 }

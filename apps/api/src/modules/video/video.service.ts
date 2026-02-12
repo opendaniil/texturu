@@ -1,7 +1,12 @@
-import { Inject, Injectable } from "@nestjs/common"
+import {
+	Inject,
+	Injectable,
+	Logger,
+	ServiceUnavailableException,
+} from "@nestjs/common"
 import { UowService } from "src/infra/database/unit-of-work.service"
 import {
-	type FetchCaptionsJobPayload,
+	VideoJobEnqueueError,
 	VideoJobsService,
 } from "../video-jobs/video-jobs.service"
 import { CreateVideoDto } from "./dto/create-video.dto"
@@ -12,6 +17,8 @@ import { VideoRepo } from "./video.repo"
 
 @Injectable()
 export class VideoService {
+	private readonly logger = new Logger(VideoService.name)
+
 	constructor(
 		@Inject() private readonly uow: UowService,
 		@Inject() private readonly videoRepo: VideoRepo,
@@ -21,65 +28,62 @@ export class VideoService {
 	async create(
 		createVideoDto: CreateVideoDto
 	): Promise<CreateVideoResponseDto> {
-		const { video, dispatchPayload } = await this.uow.run(async (uow) => {
-			const video = await this.videoRepo.createOrGetByExternalId(
-				createVideoDto,
-				uow
-			)
-			let dispatchPayload: FetchCaptionsJobPayload | null = null
+		try {
+			const video = await this.uow.run(async (uow) => {
+				const created = await this.videoRepo.createOrGetByExternalId(
+					createVideoDto,
+					uow
+				)
 
-			if (video.isNew) {
-				dispatchPayload = { videoId: video.id, externalId: video.externalId }
-				await this.videoJobsService.upsertFetchCaptionsJob(dispatchPayload, uow)
+				if (created.isNew) {
+					await this.videoJobsService.enqueueFetchCaptions({
+						videoId: created.id,
+						externalId: created.externalId,
+					})
+				}
+
+				return created
+			})
+
+			return {
+				id: video.id,
+				isNew: video.isNew,
+				source: video.source,
+				externalId: video.externalId,
+				redirectTo: `${video.id}`,
+				status: video.status,
+				statusMessage: "",
 			}
-
-			return { video, dispatchPayload }
-		})
-
-		if (dispatchPayload) {
-			try {
-				await this.videoJobsService.dispatchFetchCaptionsJob(dispatchPayload)
-			} catch {
-				await this.videoJobsService.markError(video.id)
-				await this.videoRepo.updateStatus(video.id, {
-					status: "error",
-					statusMessage: "Queue dispatch failed",
-				})
-				throw new Error("Queue dispatch failed")
+		} catch (error) {
+			this.logger.error("Failed to create video", error)
+			if (error instanceof VideoJobEnqueueError) {
+				throw new ServiceUnavailableException(
+					"Queue is temporarily unavailable, please retry later."
+				)
 			}
-		}
-
-		return {
-			id: video.id,
-			isNew: video.isNew,
-			source: video.source,
-			externalId: video.externalId,
-			redirectTo: `${video.id}`,
-			status: video.status,
-			statusMessage: "",
+			throw error
 		}
 	}
 
-	async status(id: string): Promise<VideoStatusResponseDto | null> {
-		const video = await this.videoRepo.findById(id)
+	async status(videoId: string): Promise<VideoStatusResponseDto | null> {
+		const video = await this.videoRepo.findById(videoId)
 
 		if (!video) {
 			return null
 		}
 
-		const isFinal = ["done", "error"].includes(video.status)
+		const { id, source, externalId, status, statusMessage, updatedAt } = video
+
+		const isFinal = ["done", "error"].includes(status)
 
 		return {
-			id: video.id,
-
-			source: video.source,
-			externalId: video.externalId,
-
-			status: video.status,
-			statusMessage: video.statusMessage,
-
+			id,
+			source,
+			externalId,
+			status,
+			statusMessage,
 			isFinal,
-			updatedAt: video.updatedAt,
+			updatedAt,
 		}
 	}
 
