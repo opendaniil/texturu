@@ -26,7 +26,7 @@ export function Form() {
 	const addVideoMutation = useMutation({
 		mutationFn: addVideo,
 		onSuccess: async (data) => {
-			router.push(`/video/${data.redirectTo}`)
+			router.push(`/status/${data.redirectTo}`)
 		},
 	})
 

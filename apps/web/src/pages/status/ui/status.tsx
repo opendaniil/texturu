@@ -1,18 +1,16 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useVideoStatusPoll } from "../model/video-status-poll"
-import { Article } from "./article"
 
-type Params = {
-	slug: string
-}
+export function Status({ slug }: { slug: string }) {
+	const router = useRouter()
+	const { data, isLoading, isFetching, isError, error } =
+		useVideoStatusPoll(slug)
 
-export default function VideoPage({ params }: { params: Params }) {
-	const { data, isLoading, isFetching, isError, error } = useVideoStatusPoll(
-		params.slug
-	)
-
-	if (data?.isFinal) return <Article videoId={params.slug} />
+	if (data?.isFinal) {
+		router.push(`/article/${slug}`)
+	}
 
 	const statusLabel = isError
 		? "error"
@@ -29,7 +27,7 @@ export default function VideoPage({ params }: { params: Params }) {
 				></iframe>
 			)}
 
-			<div>Video: {params.slug}</div>
+			<div>Video: {slug}</div>
 			<div>Status: {statusLabel}</div>
 			{isFetching && !isLoading && <div>Refreshing status...</div>}
 			{isError && <div>{error.message}</div>}
