@@ -4,19 +4,24 @@
 	"private": true,
 	"type": "commonjs",
 	"main": "dist/index.js",
+	"module": "dist/esm/index.js",
 	"types": "dist/index.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"default": "./dist/index.js"
+			"import": "./dist/esm/index.js",
+			"require": "./dist/index.js",
+			"default": "./dist/esm/index.js"
 		}
 	},
 	"files": [
 		"dist"
 	],
 	"scripts": {
-		"build": "tsc -p tsconfig.json",
-		"dev": "tsc -w -p tsconfig.json --preserveWatchOutput --watchFile dynamicprioritypolling --watchDirectory dynamicprioritypolling"
+		"build": "rm -rf dist && pnpm run build:cjs && pnpm run build:esm",
+		"build:cjs": "tsc -p tsconfig.json",
+		"build:esm": "tsc -p tsconfig.esm.json && mkdir -p dist/esm && printf '{\"type\":\"module\"}\\n' > dist/esm/package.json",
+		"dev": "sh -c 'mkdir -p dist/esm && printf \"{\\\"type\\\":\\\"module\\\"}\\n\" > dist/esm/package.json; tsc -w -p tsconfig.json --preserveWatchOutput --watchFile dynamicprioritypolling --watchDirectory dynamicprioritypolling & tsc -w -p tsconfig.esm.json --preserveWatchOutput --watchFile dynamicprioritypolling --watchDirectory dynamicprioritypolling & wait'"
 	},
 	"dependencies": {
 		"zod": "^4.3.6"

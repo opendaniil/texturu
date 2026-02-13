@@ -73,8 +73,8 @@ services:
 
   redis:
     image: redis:8-alpine
-    # volumes:
-    #   - redis-data:/data
+    volumes:
+      - redis-data:/data
     ports:
       # for local development
       - '127.0.0.1:${REDIS_PORT}:6379'

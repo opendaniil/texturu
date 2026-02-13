@@ -1,15 +1,15 @@
 import { useQuery } from "@tanstack/react-query"
-import type { VideoStatusResponse } from "@tubebook/schemas"
+import type { Video, VideoStatusResponse } from "@tubebook/schemas"
 import { statusPoll } from "../api"
 
 const POOL_INTERVAL = 5_000
 
-export function useVideoStatusPoll(videoId?: string) {
+export function useVideoStatusPoll(videoId?: Video["id"]) {
 	return useQuery<
 		VideoStatusResponse,
 		Error,
 		VideoStatusResponse,
-		["smart-poll", string]
+		["smart-poll", Video["id"]]
 	>({
 		queryKey: ["smart-poll", videoId ?? ""],
 		enabled: !!videoId,

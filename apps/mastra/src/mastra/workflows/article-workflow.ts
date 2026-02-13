@@ -1,16 +1,14 @@
 import { createStep, createWorkflow } from "@mastra/core/workflows"
-import z from "zod"
+import {
+	articleWorkflowInputSchema,
+	articleWorkflowOutputSchema,
+} from "@tubebook/schemas"
 
 const createArticle = createStep({
 	id: "create-article",
 	description: "Generates an article from subtitles",
-	inputSchema: z.object({
-		subtitles: z.string().describe("Video subtitles"),
-	}),
-	outputSchema: z.object({
-		title: z.string().describe("Generated article title"),
-		article: z.string().describe("Generated MD article"),
-	}),
+	inputSchema: articleWorkflowInputSchema,
+	outputSchema: articleWorkflowOutputSchema,
 	execute: async ({ inputData, mastra }) => {
 		const { subtitles } = inputData
 
@@ -57,13 +55,8 @@ const createArticle = createStep({
 
 const articleWorkflow = createWorkflow({
 	id: "article-workflow",
-	inputSchema: z.object({
-		subtitles: z.string().describe("Video subtitles"),
-	}),
-	outputSchema: z.object({
-		title: z.string().describe("Generated article title"),
-		article: z.string().describe("Generated MD article"),
-	}),
+	inputSchema: articleWorkflowInputSchema,
+	outputSchema: articleWorkflowOutputSchema,
 }).then(createArticle)
 
 articleWorkflow.commit()

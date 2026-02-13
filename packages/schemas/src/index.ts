@@ -1,12 +1,24 @@
-export type { CreateVideoRequest, CreateVideoResponse, Video } from "./video"
+export type {
+	ArticleWorkflowInput,
+	ArticleWorkflowOutput,
+} from "./article-workflow.js"
+export {
+	articleWorkflowInputSchema,
+	articleWorkflowOutputSchema,
+} from "./article-workflow.js"
+export type {
+	CreateVideoRequest,
+	CreateVideoResponse,
+	Video,
+	VideoArticleResponse,
+	VideoStatusResponse,
+} from "./video.js"
 
 export {
 	createVideoRequestSchema,
 	createVideoResponseSchema,
-	VIDEO_ID_RE,
+	videoArticleResponseSchema,
 	videoExternalIdSchema,
-	videoIdParamSchema,
-	videoMetaSchema,
 	videoSchema,
 	videoStatusResponseSchema,
-} from "./video"
+} from "./video.js"

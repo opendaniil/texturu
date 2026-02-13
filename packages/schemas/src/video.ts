@@ -5,12 +5,12 @@ const stringToDateCodec = z.codec(z.iso.datetime(), z.date(), {
 	encode: (d) => d.toISOString(),
 })
 
-export const videoMetaSchema = z.object({
+const videoMetaSchema = z.object({
 	title: z.string().optional(),
 	article: z.string().optional(),
 })
 
-export const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/
+const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/
 export const videoExternalIdSchema = z
 	.string()
 	.trim()
@@ -27,8 +27,6 @@ export const videoSchema = z.object({
 	meta: z.union([z.null(), videoMetaSchema]),
 })
 export type Video = z.infer<typeof videoSchema>
-
-export const videoIdParamSchema = videoSchema.pick({ id: true })
 
 export const createVideoRequestSchema = videoSchema.pick({
 	source: true,
@@ -49,3 +47,12 @@ export const videoStatusResponseSchema = videoSchema
 	.extend({
 		isFinal: z.boolean(),
 	})
+export type VideoStatusResponse = z.infer<typeof videoStatusResponseSchema>
+
+export const videoArticleResponseSchema = z.object({
+	videoId: z.uuidv7(),
+	title: z.string(),
+	article: z.string(),
+	updatedAt: stringToDateCodec,
+})
+export type VideoArticleResponse = z.infer<typeof videoArticleResponseSchema>

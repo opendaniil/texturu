@@ -12,6 +12,23 @@ export class VideoArticleRepo {
 		return videoArticleSchema.parse(row)
 	}
 
+	async findByVideoId(
+		videoId: string,
+		executor: InjectDb.Client = this.db
+	): Promise<VideoArticle | null> {
+		const row = await executor
+			.selectFrom("videoArticles")
+			.selectAll()
+			.where("videoId", "=", videoId)
+			.executeTakeFirst()
+
+		if (!row) {
+			return null
+		}
+
+		return this.map(row)
+	}
+
 	async upsertByVideoId(
 		params: { videoId: string; title: string; article: string },
 		executor: InjectDb.Client = this.db

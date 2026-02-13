@@ -15,7 +15,7 @@ import { FetchCaptionsJobData, VideoJobsService } from "./video-jobs.service"
 
 type ProcessPayload = FetchCaptionsJobData
 
-@Processor(QUEUES.FETCHING_CAPTIONS)
+@Processor(QUEUES.FETCHING_CAPTIONS, { concurrency: 1 })
 @Injectable()
 export class FetchCaptionsWorker extends WorkerHost {
 	private logger = new Logger(FetchCaptionsWorker.name)

@@ -1,4 +1,5 @@
 import {
+	ConflictException,
 	Inject,
 	Injectable,
 	Logger,
@@ -11,9 +12,11 @@ import {
 } from "../video-jobs/video-jobs.service"
 import { CreateVideoDto } from "./dto/create-video.dto"
 import { CreateVideoResponseDto } from "./dto/create-video-response.dto"
+import { VideoArticleResponseDto } from "./dto/video-article-response.dto"
 import { VideoResponseDto } from "./dto/video-response.dto"
 import { VideoStatusResponseDto } from "./dto/video-status-response.dto"
 import { VideoRepo } from "./video.repo"
+import { VideoArticleRepo } from "./video-article.repo"
 
 @Injectable()
 export class VideoService {
@@ -22,6 +25,7 @@ export class VideoService {
 	constructor(
 		@Inject() private readonly uow: UowService,
 		@Inject() private readonly videoRepo: VideoRepo,
+		@Inject() private readonly videoArticleRepo: VideoArticleRepo,
 		@Inject() private readonly videoJobsService: VideoJobsService
 	) {}
 
@@ -95,5 +99,24 @@ export class VideoService {
 		}
 
 		return video
+	}
+
+	async getArticle(videoId: string): Promise<VideoArticleResponseDto | null> {
+		const article = await this.videoArticleRepo.findByVideoId(videoId)
+		if (article) {
+			return {
+				videoId: article.videoId,
+				title: article.title,
+				article: article.article,
+				updatedAt: article.updatedAt,
+			}
+		}
+
+		const video = await this.videoRepo.findById(videoId)
+		if (!video) {
+			return null
+		}
+
+		throw new ConflictException("Article is not ready yet")
 	}
 }

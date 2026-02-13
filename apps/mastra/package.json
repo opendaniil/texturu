@@ -4,7 +4,8 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"dev": "mastra dev",
+		"dev": "nodemon --config nodemon.json",
+		"dev:server": "mastra dev",
 		"build": "mastra build",
 		"start": "mastra start"
 	},
@@ -25,7 +26,8 @@
 		"@mastra/observability": "^1.2.0",
 		"@mastra/pg": "^1.2.0",
 		"@openrouter/ai-sdk-provider": "^2.2.1",
-		"zod": "^3.25.76"
+		"@tubebook/schemas": "workspace:*",
+		"zod": "^4.3.6"
 	},
 	"devDependencies": {
 		"@types/node": "^25.1.0",

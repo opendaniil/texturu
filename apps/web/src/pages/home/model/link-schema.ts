@@ -1,10 +1,31 @@
-import { VIDEO_ID_RE } from "@tubebook/schemas"
+import { videoExternalIdSchema } from "@tubebook/schemas"
 import { z } from "zod"
 
 const SCHEME_RE = /^[a-z][a-z0-9+.-]*:\/\//i
 const URL_LIKE_RE = /^(https?:\/\/|www\.)/i
 
-type ParseError = "Не YouTube-домен" | "Неверный формат YouTube-ссылки"
+const YOUTUBE_HOSTS = new Set([
+	"youtube.com",
+	"www.youtube.com",
+	"m.youtube.com",
+	"music.youtube.com",
+	"youtube-nocookie.com",
+	"www.youtube-nocookie.com",
+])
+
+const YOUTUBE_SHORT_HOSTS = new Set(["youtu.be", "www.youtu.be"])
+
+export const parseErrors = {
+	INVALID_URL: "Не удалось распознать ссылку",
+	NOT_YOUTUBE: "Ссылка не ведёт на YouTube",
+	SHORTS_NOT_SUPPORTED: "Ссылки на Shorts не поддерживаются",
+	PLAYLIST_NOT_SUPPORTED: "Ссылки на плейлисты не поддерживаются",
+	MISSING_VIDEO_ID: "В ссылке не найден идентификатор видео",
+	INVALID_VIDEO_ID: "Неверный идентификатор видео",
+	UNKNOWN_YOUTUBE_URL: "Не удалось найти видео по этой ссылке",
+} as const
+
+type ParseError = (typeof parseErrors)[keyof typeof parseErrors]
 
 type ParseResult =
 	| { ok: true; videoId: string }
@@ -13,61 +34,114 @@ type ParseResult =
 const ok = (videoId: string): ParseResult => ({ ok: true, videoId })
 const fail = (error: ParseError): ParseResult => ({ ok: false, error })
 
+/** YouTube video IDs never contain dots, so any dot implies a URL */
 function looksLikeUrl(value: string): boolean {
 	return URL_LIKE_RE.test(value) || value.includes(".")
 }
 
-function parseYouTubeInput(input: string): ParseResult {
-	if (!looksLikeUrl(input)) {
-		return VIDEO_ID_RE.test(input)
-			? ok(input)
-			: fail("Неверный формат YouTube-ссылки")
-	}
+function validateVideoId(value: string): ParseResult {
+	return videoExternalIdSchema.safeParse(value).success
+		? ok(value)
+		: fail(parseErrors.INVALID_VIDEO_ID)
+}
 
-	const hasScheme = SCHEME_RE.test(input)
-
-	let url: URL
+function safeDecodeURIComponent(value: string): string {
 	try {
-		url = new URL(hasScheme ? input : `https://${input}`)
+		return decodeURIComponent(value)
 	} catch {
-		return fail("Неверный формат YouTube-ссылки")
+		return value
+	}
+}
+
+function extractPathVideoId(pathname: string): string | null {
+	const match = pathname.match(/^\/(embed|v|live|podcast)\/([^/]+)\/?$/i)
+	return match?.[2] ? safeDecodeURIComponent(match[2]) : null
+}
+
+function makeUrl(input: string): URL | null {
+	const hasScheme = SCHEME_RE.test(input)
+	try {
+		if (!hasScheme && input.startsWith("//")) {
+			return new URL(`https:${input}`)
+		}
+		return new URL(hasScheme ? input : `https://${input}`)
+	} catch {
+		return null
+	}
+}
+
+export function parseYouTubeInput(input: string): ParseResult {
+	const trimmedInput = input.trim()
+
+	if (!looksLikeUrl(trimmedInput)) {
+		return validateVideoId(trimmedInput)
 	}
 
-	const { hostname, pathname, protocol, searchParams } = url
-	const isShortUrl = hostname === "youtu.be"
-	const isFullUrl = hostname === "www.youtube.com"
+	const hasScheme = SCHEME_RE.test(trimmedInput)
+	const url = makeUrl(trimmedInput)
+	if (!url) return fail(parseErrors.INVALID_URL)
 
-	if (!isShortUrl && !isFullUrl) {
-		return fail(
-			URL_LIKE_RE.test(input)
-				? "Не YouTube-домен"
-				: "Неверный формат YouTube-ссылки"
-		)
+	const { pathname, protocol, searchParams } = url
+	const hostname = url.hostname.toLowerCase()
+
+	const isShortUrl = YOUTUBE_SHORT_HOSTS.has(hostname)
+	const isYouTube = YOUTUBE_HOSTS.has(hostname)
+
+	if (!isShortUrl && !isYouTube) {
+		return fail(parseErrors.NOT_YOUTUBE)
 	}
 
-	if (hasScheme && protocol !== "https:") {
-		return fail("Неверный формат YouTube-ссылки")
+	if (hasScheme && protocol !== "https:" && protocol !== "http:") {
+		return fail(parseErrors.INVALID_URL)
 	}
 
+	if (url.username || url.password) {
+		return fail(parseErrors.INVALID_URL)
+	}
+
+	// youtu.be/VIDEO_ID
 	if (isShortUrl) {
-		if (!hasScheme) return fail("Неверный формат YouTube-ссылки")
-
 		const match = pathname.match(/^\/([^/]+)\/?$/)
-		if (!match) return fail("Неверный формат YouTube-ссылки")
-
-		return VIDEO_ID_RE.test(match[1])
-			? ok(match[1])
-			: fail("Неверный формат YouTube-ссылки")
+		if (!match) return fail(parseErrors.MISSING_VIDEO_ID)
+		return validateVideoId(safeDecodeURIComponent(match[1]))
 	}
 
-	if (pathname !== "/watch") return fail("Неверный формат YouTube-ссылки")
+	// /shorts/* → reject explicitly
+	if (/^\/shorts(\/|$)/i.test(pathname)) {
+		return fail(parseErrors.SHORTS_NOT_SUPPORTED)
+	}
 
-	const videoId = searchParams.get("v")
-	if (!videoId) return fail("Неверный формат YouTube-ссылки")
+	// /playlist → reject explicitly
+	if (/^\/playlist\/?$/i.test(pathname)) {
+		return fail(parseErrors.PLAYLIST_NOT_SUPPORTED)
+	}
 
-	return VIDEO_ID_RE.test(videoId)
-		? ok(videoId)
-		: fail("Неверный формат YouTube-ссылки")
+	// /watch?v=VIDEO_ID
+	if (/^\/watch\/?$/i.test(pathname)) {
+		const videoId = searchParams.get("v")
+		if (!videoId) return fail(parseErrors.MISSING_VIDEO_ID)
+
+		const normalizedVideoId = videoId.trim()
+		if (!normalizedVideoId) return fail(parseErrors.MISSING_VIDEO_ID)
+
+		return validateVideoId(normalizedVideoId)
+	}
+
+	// /?v=VIDEO_ID
+	if (/^\/$/i.test(pathname)) {
+		const videoId = searchParams.get("v")
+		if (videoId !== null) {
+			const normalizedVideoId = videoId.trim()
+			if (!normalizedVideoId) return fail(parseErrors.MISSING_VIDEO_ID)
+			return validateVideoId(normalizedVideoId)
+		}
+	}
+
+	// /embed/VIDEO_ID, /v/VIDEO_ID, /live/VIDEO_ID, /podcast/VIDEO_ID
+	const videoId = extractPathVideoId(pathname)
+	if (videoId) return validateVideoId(videoId)
+
+	return fail(parseErrors.UNKNOWN_YOUTUBE_URL)
 }
 
 export const linkSchema = z

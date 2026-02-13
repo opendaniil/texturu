@@ -1,0 +1,8 @@
+{
+	"watch": ["src", "../../packages/schemas/dist/esm"],
+	"ext": "ts,js,json",
+	"ignore": ["node_modules", ".mastra", "dist"],
+	"exec": "pnpm run dev:server",
+	"legacyWatch": true,
+	"delay": "300"
+}

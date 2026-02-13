@@ -6,7 +6,8 @@
 		"dev": "nodemon --config nodemon.json",
 		"start:dev": "next dev --webpack -p 80",
 		"build": "next build",
-		"start": "next start"
+		"start": "next start",
+		"test": "node --test `**/*.test.ts`"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.1.0",

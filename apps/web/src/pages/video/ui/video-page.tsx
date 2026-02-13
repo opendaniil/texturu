@@ -1,6 +1,7 @@
 "use client"
 
 import { useVideoStatusPoll } from "../model/video-status-poll"
+import { Article } from "./article"
 
 type Params = {
 	slug: string
@@ -10,6 +11,8 @@ export default function VideoPage({ params }: { params: Params }) {
 	const { data, isLoading, isFetching, isError, error } = useVideoStatusPoll(
 		params.slug
 	)
+
+	if (data?.isFinal) return <Article videoId={params.slug} />
 
 	const statusLabel = isError
 		? "error"

@@ -1,5 +1,10 @@
 import { MastraClient } from "@mastra/client-js"
 import { Injectable } from "@nestjs/common"
+import {
+	type ArticleWorkflowOutput,
+	articleWorkflowInputSchema,
+	articleWorkflowOutputSchema,
+} from "@tubebook/schemas"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
 
 @Injectable()
@@ -12,30 +17,19 @@ export class MastraService {
 		})
 	}
 
-	async generateArticle(
-		subtitles: string
-	): Promise<{ title: string; article: string }> {
+	async generateArticle(subtitles: string): Promise<ArticleWorkflowOutput> {
 		const workflow = this.client.getWorkflow("articleWorkflow")
 		const run = await workflow.createRun()
+		const inputData = articleWorkflowInputSchema.parse({ subtitles })
 
 		const result = await run.startAsync({
-			inputData: {
-				subtitles,
-			},
+			inputData,
 		})
 
 		if (result.status !== "success") {
 			throw new Error("Workflow failed to generate article")
 		}
 
-		const payload = result.result as {
-			title: string
-			article: string
-		}
-
-		return {
-			title: payload.title,
-			article: payload.article,
-		}
+		return articleWorkflowOutputSchema.parse(result.result)
 	}
 }

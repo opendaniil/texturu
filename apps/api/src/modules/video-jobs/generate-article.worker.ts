@@ -11,7 +11,7 @@ import { GenerateArticleJobData } from "./video-jobs.service"
 
 type ProcessPayload = GenerateArticleJobData
 
-@Processor(QUEUES.GENERATE_ARTICLE)
+@Processor(QUEUES.GENERATE_ARTICLE, { concurrency: 1 })
 @Injectable()
 export class GenerateArticleWorker extends WorkerHost {
 	private logger = new Logger(GenerateArticleWorker.name)
