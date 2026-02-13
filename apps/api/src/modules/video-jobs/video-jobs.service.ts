@@ -32,16 +32,27 @@ const DEFAULT_JOB_OPTIONS = {
 @Injectable()
 export class VideoJobsService {
 	constructor(
+		@InjectQueue(QUEUES.FETCHING_INFO) private readonly fetchInfoQueue: Queue,
 		@InjectQueue(QUEUES.FETCHING_CAPTIONS) private readonly fetchQueue: Queue,
 		@InjectQueue(QUEUES.GENERATE_ARTICLE) private readonly generateQueue: Queue
 	) {}
+
+	async enqueueFetchInfo(payload: FetchCaptionsJobData) {
+		await this.enqueue(
+			this.fetchInfoQueue,
+			QUEUES.FETCHING_INFO,
+			payload,
+			this.toJobId(QUEUES.FETCHING_INFO, payload.videoId),
+			payload.videoId
+		)
+	}
 
 	async enqueueFetchCaptions(payload: FetchCaptionsJobData) {
 		await this.enqueue(
 			this.fetchQueue,
 			QUEUES.FETCHING_CAPTIONS,
 			payload,
-			this.toFetchJobId(payload.videoId),
+			this.toJobId(QUEUES.FETCHING_CAPTIONS, payload.videoId),
 			payload.videoId
 		)
 	}
@@ -51,7 +62,7 @@ export class VideoJobsService {
 			this.generateQueue,
 			QUEUES.GENERATE_ARTICLE,
 			payload,
-			this.toGenerateJobId(payload.videoId),
+			this.toJobId(QUEUES.GENERATE_ARTICLE, payload.videoId),
 			payload.videoId
 		)
 	}
@@ -76,11 +87,7 @@ export class VideoJobsService {
 		}
 	}
 
-	private toFetchJobId(videoId: string): string {
-		return `${QUEUES.FETCHING_CAPTIONS}-${videoId}`
-	}
-
-	private toGenerateJobId(videoId: string): string {
-		return `${QUEUES.GENERATE_ARTICLE}-${videoId}`
+	private toJobId(queue: string, videoId: string): string {
+		return `${queue}-${videoId}`
 	}
 }

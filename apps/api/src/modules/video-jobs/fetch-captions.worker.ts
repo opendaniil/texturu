@@ -40,7 +40,7 @@ export class FetchCaptionsWorker extends WorkerHost {
 			this.logger.log(`Start jobId=${job.id} attempt=${job.attemptsMade + 1}`)
 			await this.videoRepo.updateStatus(videoId, {
 				status: "processing",
-				statusMessage: "fetching captions",
+				statusMessage: "Получение субтитров",
 			})
 
 			await this.downloadAndSaveSubtitles(videoId, externalId)

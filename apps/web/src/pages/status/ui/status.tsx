@@ -9,7 +9,7 @@ export function Status({ slug }: { slug: string }) {
 		useVideoStatusPoll(slug)
 
 	if (data?.isFinal) {
-		router.push(`/article/${slug}`)
+		router.replace(`/article/${slug}`)
 	}
 
 	const statusLabel = isError
@@ -29,6 +29,7 @@ export function Status({ slug }: { slug: string }) {
 
 			<div>Video: {slug}</div>
 			<div>Status: {statusLabel}</div>
+			<div>Status message: {data?.statusMessage}</div>
 			{isFetching && !isLoading && <div>Refreshing status...</div>}
 			{isError && <div>{error.message}</div>}
 		</div>

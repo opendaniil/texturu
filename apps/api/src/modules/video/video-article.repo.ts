@@ -1,16 +1,11 @@
 import { Injectable } from "@nestjs/common"
-import { Selectable, sql } from "kysely"
-import { Database } from "src/infra/database/database.module"
+import { VideoArticle } from "@tubebook/schemas"
+import { sql } from "kysely"
 import { InjectDb } from "src/infra/database/inject.decorator"
-import { VideoArticle, videoArticleSchema } from "./video-article.schema"
 
 @Injectable()
 export class VideoArticleRepo {
 	constructor(@InjectDb() private readonly db: InjectDb.Client) {}
-
-	private map(row: Selectable<Database["videoArticles"]>): VideoArticle {
-		return videoArticleSchema.parse(row)
-	}
 
 	async findByVideoId(
 		videoId: string,
@@ -26,13 +21,13 @@ export class VideoArticleRepo {
 			return null
 		}
 
-		return this.map(row)
+		return row
 	}
 
 	async upsertByVideoId(
 		params: { videoId: string; title: string; article: string },
 		executor: InjectDb.Client = this.db
-	): Promise<VideoArticle> {
+	): Promise<VideoArticle | null> {
 		const row = await executor
 			.insertInto("videoArticles")
 			.values(params)
@@ -46,6 +41,10 @@ export class VideoArticleRepo {
 			.returningAll()
 			.executeTakeFirstOrThrow()
 
-		return this.map(row)
+		if (!row) {
+			return null
+		}
+
+		return row
 	}
 }

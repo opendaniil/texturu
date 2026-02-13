@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { Selectable, sql } from "kysely"
+import { AppConfigService } from "src/infra/app-config/app-config.service"
 import { Database } from "src/infra/database/database.module"
 import { InjectDb } from "src/infra/database/inject.decorator"
 import { CreateVideoDto } from "./dto/create-video.dto"
@@ -7,22 +8,21 @@ import { Video, videoSchema } from "./video.schema"
 
 @Injectable()
 export class VideoRepo {
-	constructor(@InjectDb() private readonly db: InjectDb.Client) {}
+	constructor(
+		@InjectDb() private readonly db: InjectDb.Client,
+		private readonly config: AppConfigService
+	) {}
 
 	private map(video: Selectable<Database["videos"]>): Video {
-		return {
-			...video,
-			source: videoSchema.shape.source.parse(video.source),
-			status: videoSchema.shape.status.parse(video.status),
-			meta: videoSchema.shape.meta.parse(video.meta),
-		}
+		if (this.config.isProd) return video as Video
+		return videoSchema.parse(video)
 	}
 
 	async createOrGetByExternalId(
 		{ source, externalId }: CreateVideoDto,
 		executor: InjectDb.Client = this.db
-	) {
-		const row = await executor
+	): Promise<Video & { isNew: boolean }> {
+		const { isNew, ...row } = await executor
 			.insertInto("videos")
 			.values({ externalId: externalId, source })
 			.onConflict(
@@ -37,7 +37,7 @@ export class VideoRepo {
 
 		return {
 			...this.map(row),
-			isNew: row.isNew,
+			isNew,
 		}
 	}
 

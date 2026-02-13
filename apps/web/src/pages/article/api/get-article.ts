@@ -1,14 +1,11 @@
-import {
-	type VideoArticleResponse,
-	videoArticleResponseSchema,
-} from "@tubebook/schemas"
+import { type VideoArticle, videoArticleSchema } from "@tubebook/schemas"
 
 export const revalidate = 10
 const apiHost = process.env.API_INTERNAL_HOST
 
 export async function getArticle(
 	videoId: string
-): Promise<VideoArticleResponse | null> {
+): Promise<VideoArticle | null> {
 	console.log(apiHost)
 
 	const response = await fetch(`${apiHost}/api/video/${videoId}/article`, {
@@ -27,5 +24,7 @@ export async function getArticle(
 		throw new Error(body?.message ?? `HTTP ${response.status}`)
 	}
 
-	return videoArticleResponseSchema.parse(body)
+	console.log(">", JSON.stringify({ body }, null, 2))
+
+	return videoArticleSchema.parse(body)
 }

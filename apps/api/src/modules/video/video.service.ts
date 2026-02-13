@@ -40,7 +40,7 @@ export class VideoService {
 				)
 
 				if (created.isNew) {
-					await this.videoJobsService.enqueueFetchCaptions({
+					await this.videoJobsService.enqueueFetchInfo({
 						videoId: created.id,
 						externalId: created.externalId,
 					})
@@ -56,7 +56,7 @@ export class VideoService {
 				externalId: video.externalId,
 				redirectTo: `${video.id}`,
 				status: video.status,
-				statusMessage: "",
+				statusMessage: video.statusMessage,
 			}
 		} catch (error) {
 			this.logger.error("Failed to create video", error)
@@ -103,20 +103,10 @@ export class VideoService {
 
 	async getArticle(videoId: string): Promise<VideoArticleResponseDto | null> {
 		const article = await this.videoArticleRepo.findByVideoId(videoId)
-		if (article) {
-			return {
-				videoId: article.videoId,
-				title: article.title,
-				article: article.article,
-				updatedAt: article.updatedAt,
-			}
-		}
-
-		const video = await this.videoRepo.findById(videoId)
-		if (!video) {
+		if (!article) {
 			return null
 		}
 
-		throw new ConflictException("Article is not ready yet")
+		return article
 	}
 }

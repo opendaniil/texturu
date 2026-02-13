@@ -32,7 +32,7 @@ export function Form() {
 
 	const form = useForm({
 		defaultValues: {
-			text: "https://www.youtube.com/watch?v=UEQSkaqrMZA&pp=ygUEdGVzdA%3D%3D",
+			text: "",
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -51,7 +51,7 @@ export function Form() {
 	return (
 		<form
 			noValidate
-			className="space-y-4 w-full"
+			className="space-y-4 w-full flex flex-row relative"
 			onSubmit={(e) => {
 				e.preventDefault()
 				form.handleSubmit()
@@ -65,9 +65,9 @@ export function Form() {
 
 						return (
 							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={field.name}>
+								{/* <FieldLabel htmlFor={field.name}>
 									Прочитать видео с ютуба
-								</FieldLabel>
+								</FieldLabel> */}
 
 								<Input
 									id={field.name}
@@ -80,9 +80,9 @@ export function Form() {
 									autoComplete="off"
 								/>
 
-								{!isInvalid && (
+								{/* {!isInvalid && (
 									<FieldDescription>От 3 до 50 символов.</FieldDescription>
-								)}
+								)} */}
 
 								{isInvalid && <FieldError errors={field.state.meta.errors} />}
 							</Field>
@@ -92,15 +92,15 @@ export function Form() {
 			</FieldGroup>
 
 			{addVideoMutation.isError && (
-				<p className="text-sm text-red-600 mt-2">
+				<p className="text-sm text-red-600 mt-2 absolute bottom-0">
 					{(addVideoMutation.error as Error).message}
 				</p>
 			)}
 
 			<div className="flex gap-2 justify-end  ">
-				<Button type="button" variant="outline" onClick={() => form.reset()}>
+				{/* <Button type="button" variant="outline" onClick={() => form.reset()}>
 					<LucideEraser className="h-4 w-4" />
-				</Button>
+				</Button> */}
 
 				<Button type="submit" disabled={addVideoMutation.isPending}>
 					{addVideoMutation.isPending ? "Загрузка…" : "Прочитать видео"}

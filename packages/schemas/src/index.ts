@@ -1,3 +1,5 @@
+export type { VideoArticle } from "./article.js"
+export { videoArticleSchema } from "./article.js"
 export type {
 	ArticleWorkflowInput,
 	ArticleWorkflowOutput,
@@ -10,14 +12,10 @@ export type {
 	CreateVideoRequest,
 	CreateVideoResponse,
 	Video,
-	VideoArticleResponse,
-	VideoStatusResponse,
 } from "./video.js"
-
 export {
 	createVideoRequestSchema,
 	createVideoResponseSchema,
-	videoArticleResponseSchema,
 	videoExternalIdSchema,
 	videoSchema,
 	videoStatusResponseSchema,

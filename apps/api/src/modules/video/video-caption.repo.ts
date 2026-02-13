@@ -8,10 +8,6 @@ import { VideoCaption, videoCaptionSchema } from "./video-caption.schema"
 export class VideoCaptionRepo {
 	constructor(@InjectDb() private readonly db: InjectDb.Client) {}
 
-	private map(row: Selectable<Database["videoCaptions"]>): VideoCaption {
-		return videoCaptionSchema.parse(row)
-	}
-
 	async upsertByVideoId(
 		params: { videoId: string; vttText: string; plainText: string },
 		executor: InjectDb.Client = this.db
@@ -29,7 +25,7 @@ export class VideoCaptionRepo {
 			.returningAll()
 			.executeTakeFirstOrThrow()
 
-		return this.map(row)
+		return row
 	}
 
 	async findPlainTextByVideoId(

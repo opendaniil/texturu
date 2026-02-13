@@ -1,66 +1,46 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Injectable, Logger } from "@nestjs/common"
 import { Job } from "bullmq"
-import { UowService } from "src/infra/database/unit-of-work.service"
+import { AppConfigService } from "src/infra/app-config/app-config.service"
 import { QUEUES } from "src/infra/queue/queue.module"
+
+import { VideoInfo, YtDlp } from "ytdlp-nodejs"
 import { VideoRepo } from "../video/video.repo"
-import { VideoArticleRepo } from "../video/video-article.repo"
-import { VideoCaptionRepo } from "../video/video-caption.repo"
-import { MastraService } from "./mastra.service"
-import { GenerateArticleJobData } from "./video-jobs.service"
+import { FetchCaptionsJobData, VideoJobsService } from "./video-jobs.service"
 
-type ProcessPayload = GenerateArticleJobData
+type ProcessPayload = FetchCaptionsJobData
 
-@Processor(QUEUES.GENERATE_ARTICLE, { concurrency: 1 })
+@Processor(QUEUES.FETCHING_INFO, { concurrency: 1 })
 @Injectable()
-export class GenerateArticleWorker extends WorkerHost {
-	private logger = new Logger(GenerateArticleWorker.name)
+export class FetchInfoWorker extends WorkerHost {
+	private logger = new Logger(FetchInfoWorker.name)
+	private readonly ytdlp: YtDlp
 
 	constructor(
-		private readonly mastraService: MastraService,
+		private readonly videoJobsService: VideoJobsService,
 		private readonly videoRepo: VideoRepo,
-		private readonly videoArticleRepo: VideoArticleRepo,
-		private readonly videoCaptionRepo: VideoCaptionRepo,
-		private readonly uow: UowService
+		private readonly appConfig: AppConfigService
 	) {
 		super()
+		this.ytdlp = new YtDlp({
+			binaryPath: "/usr/bin/yt-dlp",
+		})
 	}
 
 	async process(job: Job<ProcessPayload>) {
-		const { videoId } = job.data
+		const { videoId, externalId } = job.data
 
 		try {
 			this.logger.log(`Start jobId=${job.id} attempt=${job.attemptsMade + 1}`)
 			await this.videoRepo.updateStatus(videoId, {
 				status: "processing",
-				statusMessage: "Создание статьи",
+				statusMessage: "Получение информации о видео",
 			})
 
-			const plainText =
-				await this.videoCaptionRepo.findPlainTextByVideoId(videoId)
-			if (!plainText) {
-				throw new Error(`No plain text found for video ${videoId}`)
-			}
+			await this.fetchAndSaveInfo(videoId, externalId)
 
-			const articleData = await this.mastraService.generateArticle(plainText)
-			await this.uow.run(async (trx) => {
-				await this.videoArticleRepo.upsertByVideoId(
-					{
-						videoId,
-						title: articleData.title,
-						article: articleData.article,
-					},
-					trx
-				)
-				await this.videoRepo.updateStatus(
-					videoId,
-					{
-						status: "done",
-						statusMessage: "Статья создана",
-					},
-					trx
-				)
-			})
+			// Next step
+			await this.videoJobsService.enqueueFetchCaptions({ videoId, externalId })
 		} catch (error) {
 			this.logger.error(
 				`Failed jobId=${job.id} attempt=${job.attemptsMade + 1}`,
@@ -90,6 +70,7 @@ export class GenerateArticleWorker extends WorkerHost {
 			`Final failure jobId=${job.id} attempts=${job.attemptsMade}`,
 			error.stack
 		)
+
 		try {
 			await this.videoRepo.updateStatus(job.data.videoId, {
 				status: "error",
@@ -106,7 +87,7 @@ export class GenerateArticleWorker extends WorkerHost {
 	@OnWorkerEvent("error")
 	onWorkerError(error: Error) {
 		this.logger.error(
-			"Worker error",
+			`Worker error`,
 			error instanceof Error ? error.stack : undefined
 		)
 	}
@@ -114,5 +95,43 @@ export class GenerateArticleWorker extends WorkerHost {
 	@OnWorkerEvent("stalled")
 	onStalled(jobId: string, prev: string) {
 		this.logger.warn(`Stalled jobId=${jobId} prev=${prev}`)
+	}
+
+	private async fetchAndSaveInfo(videoId: string, youtubeId: string) {
+		const youtubeUrl = `https://www.youtube.com/watch?v=${youtubeId}`
+		const proxy = this.appConfig.get("YOUTUBE_PROXY")
+
+		try {
+			const info = await this.ytdlp.getInfoAsync(youtubeUrl, {
+				// @ts-expect-error @types/ytdlp-nodejs не содержит rawArgs, но работает
+				rawArgs: ["--proxy", proxy],
+			})
+
+			const {
+				fulltitle,
+				description,
+				channel_id,
+				channel: channelTitle,
+				duration,
+				categories,
+				tags,
+				language,
+			} = info as VideoInfo
+
+			const result = {
+				fulltitle,
+				description,
+				channelId: channel_id,
+				channelTitle,
+				duration,
+				categories,
+				tags,
+				language,
+			}
+
+			console.log(">", JSON.stringify({ result }, null, 2))
+		} catch (error) {
+			throw error
+		}
 	}
 }
