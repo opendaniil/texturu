@@ -4,6 +4,7 @@ import { QUEUES } from "src/infra/queue/queue.module"
 import { VideoRepo } from "../video/video.repo"
 import { VideoArticleRepo } from "../video/video-article.repo"
 import { VideoCaptionRepo } from "../video/video-caption.repo"
+import { VideoInfoRepo } from "../video/video-info.repo"
 import { FetchCaptionsWorker } from "./fetch-captions.worker"
 import { FetchInfoWorker } from "./fetch-info.worker"
 import { GenerateArticleWorker } from "./generate-article.worker"
@@ -20,6 +21,7 @@ import { VideoJobsService } from "./video-jobs.service"
 		VideoRepo,
 		VideoArticleRepo,
 		VideoCaptionRepo,
+		VideoInfoRepo,
 		VideoJobsService,
 		FetchCaptionsWorker,
 		MastraService,

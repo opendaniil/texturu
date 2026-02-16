@@ -1,5 +1,4 @@
 import {
-	ConflictException,
 	Inject,
 	Injectable,
 	Logger,
@@ -17,6 +16,7 @@ import { VideoResponseDto } from "./dto/video-response.dto"
 import { VideoStatusResponseDto } from "./dto/video-status-response.dto"
 import { VideoRepo } from "./video.repo"
 import { VideoArticleRepo } from "./video-article.repo"
+import { VideoInfoRepo } from "./video-info.repo"
 
 @Injectable()
 export class VideoService {
@@ -25,6 +25,7 @@ export class VideoService {
 	constructor(
 		@Inject() private readonly uow: UowService,
 		@Inject() private readonly videoRepo: VideoRepo,
+		@Inject() private readonly videoInfoRepo: VideoInfoRepo,
 		@Inject() private readonly videoArticleRepo: VideoArticleRepo,
 		@Inject() private readonly videoJobsService: VideoJobsService
 	) {}
@@ -98,7 +99,12 @@ export class VideoService {
 			return null
 		}
 
-		return video
+		const info = await this.videoInfoRepo.findByVideoId(id)
+
+		return {
+			...video,
+			info,
+		}
 	}
 
 	async getArticle(videoId: string): Promise<VideoArticleResponseDto | null> {

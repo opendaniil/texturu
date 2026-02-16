@@ -1,8 +1,7 @@
 import { Injectable } from "@nestjs/common"
-import { Selectable, sql } from "kysely"
-import { Database } from "src/infra/database/database.module"
+import { sql } from "kysely"
 import { InjectDb } from "src/infra/database/inject.decorator"
-import { VideoCaption, videoCaptionSchema } from "./video-caption.schema"
+import { VideoCaption } from "./video-caption.schema"
 
 @Injectable()
 export class VideoCaptionRepo {

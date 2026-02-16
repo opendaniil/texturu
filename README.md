@@ -1,13 +1,13 @@
 # tubebook
 
-Monorepo for a YouTube video processing app.
+Монорепозиторий для приложения обработки YouTube-видео.
 
-## Apps
+## Приложения (Apps)
 
-- `apps/api` - NestJS API (`/api/*`), PostgreSQL (Kysely), BullMQ queue workers
-- `apps/web` - Next.js frontend
-- `apps/mastra` - Mastra ai service
+* `apps/api` — NestJS API (`/api/*`), PostgreSQL (Kysely), воркеры очереди BullMQ ([README](apps/api/README.md))
+* `apps/web` — фронтенд на Next.js ([README](apps/web/README.md))
+* `apps/mastra` — AI-сервис Mastra
 
-## Packages
+## Пакеты (Packages)
 
-- `packages/schemas` - shared Zod schemas for API and Web
+* `packages/schemas` — общие Zod-схемы для доменной модели и API ([README](packages/schemas/README.md))

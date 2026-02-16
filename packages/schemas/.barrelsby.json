@@ -1,0 +1,9 @@
+{
+	"directory": ["./src"],
+	"location": "top",
+	"structure": "flat",
+	"delete": true,
+	"noHeader": true,
+	"noSemicolon": true,
+	"exclude": ["src/utils.ts$", "src/index.ts$"]
+}

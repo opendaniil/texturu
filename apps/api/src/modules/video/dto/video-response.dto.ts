@@ -1,4 +1,4 @@
-import { videoSchema } from "@tubebook/schemas"
+import { videoResponseSchema } from "@tubebook/schemas"
 import { createZodDto } from "nestjs-zod"
 
-export class VideoResponseDto extends createZodDto(videoSchema) {}
+export class VideoResponseDto extends createZodDto(videoResponseSchema) {}

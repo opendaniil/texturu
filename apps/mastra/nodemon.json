@@ -1,5 +1,5 @@
 {
-	"watch": ["src", "../../packages/schemas/dist/esm"],
+	"watch": ["src", "../../packages/schemas/dist"],
 	"ext": "ts,js,json",
 	"ignore": ["node_modules", ".mastra", "dist"],
 	"exec": "pnpm run dev:server",

@@ -41,12 +41,26 @@ export interface VideoCaptions {
   vttText: string;
 }
 
+export interface VideoInfos {
+  categories: Generated<string[]>;
+  channelId: string | null;
+  channelTitle: string | null;
+  createdAt: Generated<Timestamp>;
+  description: string | null;
+  duration: number | null;
+  fulltitle: string | null;
+  id: Generated<string>;
+  language: string | null;
+  tags: Generated<string[]>;
+  updatedAt: Generated<Timestamp>;
+  videoId: string;
+}
+
 export interface Videos {
   createdAt: Generated<Timestamp>;
   error: Json | null;
   externalId: string;
   id: Generated<string>;
-  meta: Json | null;
   source: string;
   status: Generated<string>;
   statusMessage: Generated<string>;
@@ -56,5 +70,6 @@ export interface Videos {
 export interface DB {
   videoArticles: VideoArticles;
   videoCaptions: VideoCaptions;
+  videoInfos: VideoInfos;
   videos: Videos;
 }

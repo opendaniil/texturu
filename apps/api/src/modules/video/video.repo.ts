@@ -72,21 +72,4 @@ export class VideoRepo {
 
 		return res
 	}
-
-	async saveArticle(
-		videoId: string,
-		article: string,
-		executor: InjectDb.Client = this.db
-	) {
-		const res = await executor
-			.updateTable("videos")
-			.set({
-				meta: sql`jsonb_set(coalesce(meta, '{}'::jsonb), '{article}', to_jsonb(${article}::text), true)`,
-				updatedAt: new Date(),
-			})
-			.where("id", "=", videoId)
-			.executeTakeFirstOrThrow()
-
-		return res
-	}
 }

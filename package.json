@@ -8,7 +8,7 @@
 		"proxy": "socat TCP-LISTEN:1088,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:1087",
 		"compose:up": "docker compose -f './docker-compose.dev.yml' up --build",
 		"compose:down": "docker compose -f ./docker-compose.dev.yml down && docker volume prune -f",
-		"lint": "biome check . --write"
+		"lint": "biome check . --write --diagnostic-level=error"
 	},
 	"keywords": [],
 	"author": "",

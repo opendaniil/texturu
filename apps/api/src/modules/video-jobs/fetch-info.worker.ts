@@ -6,6 +6,8 @@ import { QUEUES } from "src/infra/queue/queue.module"
 
 import { VideoInfo, YtDlp } from "ytdlp-nodejs"
 import { VideoRepo } from "../video/video.repo"
+import { VideoInfoRepo } from "../video/video-info.repo"
+import { normalizeVideoInfoPayload } from "./normalize-video-info"
 import { FetchCaptionsJobData, VideoJobsService } from "./video-jobs.service"
 
 type ProcessPayload = FetchCaptionsJobData
@@ -19,6 +21,7 @@ export class FetchInfoWorker extends WorkerHost {
 	constructor(
 		private readonly videoJobsService: VideoJobsService,
 		private readonly videoRepo: VideoRepo,
+		private readonly videoInfoRepo: VideoInfoRepo,
 		private readonly appConfig: AppConfigService
 	) {
 		super()
@@ -101,37 +104,15 @@ export class FetchInfoWorker extends WorkerHost {
 		const youtubeUrl = `https://www.youtube.com/watch?v=${youtubeId}`
 		const proxy = this.appConfig.get("YOUTUBE_PROXY")
 
-		try {
-			const info = await this.ytdlp.getInfoAsync(youtubeUrl, {
-				// @ts-expect-error @types/ytdlp-nodejs не содержит rawArgs, но работает
-				rawArgs: ["--proxy", proxy],
-			})
+		const info = await this.ytdlp.getInfoAsync(youtubeUrl, {
+			// @ts-expect-error @types/ytdlp-nodejs не содержит rawArgs, но работает
+			rawArgs: ["--proxy", proxy],
+		})
+		const payload = normalizeVideoInfoPayload(info as Partial<VideoInfo>)
 
-			const {
-				fulltitle,
-				description,
-				channel_id,
-				channel: channelTitle,
-				duration,
-				categories,
-				tags,
-				language,
-			} = info as VideoInfo
-
-			const result = {
-				fulltitle,
-				description,
-				channelId: channel_id,
-				channelTitle,
-				duration,
-				categories,
-				tags,
-				language,
-			}
-
-			console.log(">", JSON.stringify({ result }, null, 2))
-		} catch (error) {
-			throw error
-		}
+		await this.videoInfoRepo.upsertByVideoId({
+			videoId,
+			...payload,
+		})
 	}
 }
