@@ -46,7 +46,6 @@ export class FetchInfoService {
 			// @ts-expect-error @types/ytdlp-nodejs не содержит rawArgs, но работает
 			rawArgs: ["--proxy", proxy],
 		})
-		console.log(">", JSON.stringify({ info }, null, 2))
 
 		const {
 			fulltitle,

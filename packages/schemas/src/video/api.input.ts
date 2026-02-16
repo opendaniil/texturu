@@ -1,7 +1,7 @@
 import type { z } from "zod"
-import { videoSchema } from "./domain.js"
+import { videoApiSchema } from "./api.js"
 
-export const createVideoRequestSchema = videoSchema.pick({
+export const createVideoRequestSchema = videoApiSchema.pick({
 	source: true,
 	externalId: true,
 })

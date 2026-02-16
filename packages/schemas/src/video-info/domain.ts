@@ -1,9 +1,9 @@
 import z from "zod"
-import { stringToDateCodec } from "../utils"
 import { videoSchema } from "../video/domain"
 
 export const videoInfoSchema = z.object({
 	id: z.uuidv7(),
+
 	videoId: videoSchema.shape.id,
 	fulltitle: z.string().nullable(),
 	description: z.string().nullable(),
@@ -13,7 +13,8 @@ export const videoInfoSchema = z.object({
 	categories: z.array(z.string()),
 	tags: z.array(z.string()),
 	language: z.string().nullable(),
-	createdAt: stringToDateCodec,
-	updatedAt: stringToDateCodec,
+
+	createdAt: z.date(),
+	updatedAt: z.date(),
 })
 export type VideoInfo = z.infer<typeof videoInfoSchema>

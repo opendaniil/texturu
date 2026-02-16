@@ -8,11 +8,7 @@ import { UowService } from "src/infra/database/unit-of-work.service"
 import { VideoRepo } from "../data/video.repo"
 import { VideoArticleRepo } from "../data/video-article.repo"
 import { VideoInfoRepo } from "../data/video-info.repo"
-import { type CreateVideoDto } from "../entrypoint/rest/dto/create-video.dto"
-import { type CreateVideoResponseDto } from "../entrypoint/rest/dto/create-video-response.dto"
-import { type VideoArticleResponseDto } from "../entrypoint/rest/dto/video-article-response.dto"
-import { type VideoResponseDto } from "../entrypoint/rest/dto/video-response.dto"
-import { type VideoStatusResponseDto } from "../entrypoint/rest/dto/video-status-response.dto"
+import type { CreateVideoDto } from "../entrypoint/rest/dto/create-video.dto"
 import { VideoJobEnqueueError, VideoJobsService } from "./video-jobs.service"
 
 @Injectable()
@@ -27,9 +23,7 @@ export class VideoService {
 		@Inject() private readonly videoJobsService: VideoJobsService
 	) {}
 
-	async create(
-		createVideoDto: CreateVideoDto
-	): Promise<CreateVideoResponseDto> {
+	async create(createVideoDto: CreateVideoDto) {
 		try {
 			const video = await this.uow.run(async (uow) => {
 				const created = await this.videoRepo.createOrGetByExternalId(
@@ -67,7 +61,7 @@ export class VideoService {
 		}
 	}
 
-	async status(videoId: string): Promise<VideoStatusResponseDto | null> {
+	async status(videoId: string) {
 		const video = await this.videoRepo.findById(videoId)
 
 		if (!video) {
@@ -89,7 +83,7 @@ export class VideoService {
 		}
 	}
 
-	async findOne(id: string): Promise<VideoResponseDto | null> {
+	async findOne(id: string) {
 		const video = await this.videoRepo.findById(id)
 
 		if (!video) {
@@ -104,12 +98,9 @@ export class VideoService {
 		}
 	}
 
-	async getArticle(videoId: string): Promise<VideoArticleResponseDto | null> {
+	async getArticle(videoId: string) {
 		const article = await this.videoArticleRepo.findByVideoId(videoId)
-		if (!article) {
-			return null
-		}
 
-		return article
+		return article ?? null
 	}
 }

@@ -1,8 +1,8 @@
 import { z } from "zod"
-import { videoInfoSchema } from "../video-info/domain.js"
-import { videoSchema } from "./domain.js"
+import { videoInfoApiSchema } from "../video-info/api.js"
+import { videoApiSchema } from "./api.js"
 
-export const createVideoResponseSchema = videoSchema
+export const createVideoResponseSchema = videoApiSchema
 	.omit({ createdAt: true, updatedAt: true })
 	.extend({
 		redirectTo: z.string(),
@@ -10,14 +10,14 @@ export const createVideoResponseSchema = videoSchema
 	})
 export type CreateVideoResponse = z.infer<typeof createVideoResponseSchema>
 
-export const videoStatusResponseSchema = videoSchema
+export const videoStatusResponseSchema = videoApiSchema
 	.omit({ createdAt: true })
 	.extend({
 		isFinal: z.boolean(),
 	})
 export type VideoStatusResponse = z.infer<typeof videoStatusResponseSchema>
 
-export const videoResponseSchema = videoSchema.extend({
-	info: videoInfoSchema.nullable(),
+export const videoResponseSchema = videoApiSchema.extend({
+	info: videoInfoApiSchema.nullable(),
 })
 export type VideoResponse = z.infer<typeof videoResponseSchema>
