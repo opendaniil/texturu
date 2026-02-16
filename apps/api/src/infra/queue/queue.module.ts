@@ -3,12 +3,6 @@ import { Global, Module } from "@nestjs/common"
 import { AppConfigModule } from "../app-config/app-config.module"
 import { AppConfigService } from "../app-config/app-config.service"
 
-export const QUEUES = {
-	FETCHING_INFO: "fetch_info",
-	FETCHING_CAPTIONS: "fetch_captions",
-	GENERATE_ARTICLE: "generate_article",
-} as const
-
 @Global()
 @Module({
 	imports: [

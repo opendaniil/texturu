@@ -9,13 +9,13 @@ import {
 	Post,
 } from "@nestjs/common"
 import { ApiOkResponse } from "@nestjs/swagger"
+import { VideoService } from "../../application/video.service"
 import { CreateVideoDto } from "./dto/create-video.dto"
 import { CreateVideoResponseDto } from "./dto/create-video-response.dto"
 import { VideoArticleResponseDto } from "./dto/video-article-response.dto"
 import { VideoIdDto } from "./dto/video-id.dto"
 import { VideoResponseDto } from "./dto/video-response.dto"
 import { VideoStatusResponseDto } from "./dto/video-status-response.dto"
-import { VideoService } from "./video.service"
 
 @Controller("video")
 export class VideoController {

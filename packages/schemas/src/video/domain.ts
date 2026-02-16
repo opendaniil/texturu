@@ -8,18 +8,6 @@ export const videoExternalIdSchema = z
 	.trim()
 	.regex(VIDEO_ID_RE, "Неверный videoId")
 
-export const videoInfoPayloadSchema = z.object({
-	fulltitle: z.string().nullable(),
-	description: z.string().nullable(),
-	channelId: z.string().nullable(),
-	channelTitle: z.string().nullable(),
-	duration: z.number().int().nonnegative().nullable(),
-	categories: z.array(z.string()),
-	tags: z.array(z.string()),
-	language: z.string().nullable(),
-})
-export type VideoInfoPayload = z.infer<typeof videoInfoPayloadSchema>
-
 export const videoSchema = z.object({
 	id: z.uuidv7(),
 	source: z.enum(["youtube"]),

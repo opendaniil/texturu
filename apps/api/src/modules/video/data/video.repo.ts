@@ -1,25 +1,22 @@
 import { Injectable } from "@nestjs/common"
+import { Video, videoSchema } from "@tubebook/schemas"
 import { Selectable, sql } from "kysely"
-import { AppConfigService } from "src/infra/app-config/app-config.service"
 import { Database } from "src/infra/database/database.module"
 import { InjectDb } from "src/infra/database/inject.decorator"
-import { CreateVideoDto } from "./dto/create-video.dto"
-import { Video, videoSchema } from "./video.schema"
+
+type CreateVideoParams = Pick<Video, "source" | "externalId">
+type VideoRow = Selectable<Database["videos"]>
 
 @Injectable()
 export class VideoRepo {
-	constructor(
-		@InjectDb() private readonly db: InjectDb.Client,
-		private readonly config: AppConfigService
-	) {}
+	constructor(@InjectDb() private readonly db: InjectDb.Client) {}
 
-	private map(video: Selectable<Database["videos"]>): Video {
-		if (this.config.isProd) return video as Video
+	private toDomain(video: VideoRow): Video {
 		return videoSchema.parse(video)
 	}
 
 	async createOrGetByExternalId(
-		{ source, externalId }: CreateVideoDto,
+		{ source, externalId }: CreateVideoParams,
 		executor: InjectDb.Client = this.db
 	): Promise<Video & { isNew: boolean }> {
 		const { isNew, ...row } = await executor
@@ -36,7 +33,7 @@ export class VideoRepo {
 			.executeTakeFirstOrThrow()
 
 		return {
-			...this.map(row),
+			...this.toDomain(row),
 			isNew,
 		}
 	}
@@ -48,8 +45,7 @@ export class VideoRepo {
 			.where("id", "=", id)
 			.executeTakeFirst()
 
-		if (!row) return null
-		return this.map(row)
+		return row ? this.toDomain(row) : null
 	}
 
 	async updateStatus(
@@ -59,7 +55,7 @@ export class VideoRepo {
 			statusMessage: string
 		},
 		executor: InjectDb.Client = this.db
-	) {
+	): Promise<boolean | null> {
 		const res = await executor
 			.updateTable("videos")
 			.set({
@@ -70,6 +66,6 @@ export class VideoRepo {
 			.where("id", "=", videoId)
 			.executeTakeFirstOrThrow()
 
-		return res
+		return res.numUpdatedRows > 0 ? true : null
 	}
 }

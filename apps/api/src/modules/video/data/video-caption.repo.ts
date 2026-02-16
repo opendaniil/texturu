@@ -1,16 +1,21 @@
 import { Injectable } from "@nestjs/common"
-import { sql } from "kysely"
+import { VideoCaption, videoCaptionSchema } from "@tubebook/schemas"
+import { Selectable, sql } from "kysely"
+import { VideoCaptions } from "src/infra/database/generated-db-types"
 import { InjectDb } from "src/infra/database/inject.decorator"
-import { VideoCaption } from "./video-caption.schema"
 
 @Injectable()
 export class VideoCaptionRepo {
 	constructor(@InjectDb() private readonly db: InjectDb.Client) {}
 
+	private toDomain(row: Selectable<VideoCaptions>): VideoCaption {
+		return videoCaptionSchema.parse(row)
+	}
+
 	async upsertByVideoId(
 		params: { videoId: string; vttText: string; plainText: string },
 		executor: InjectDb.Client = this.db
-	): Promise<VideoCaption> {
+	): Promise<VideoCaption | null> {
 		const row = await executor
 			.insertInto("videoCaptions")
 			.values(params)
@@ -24,7 +29,7 @@ export class VideoCaptionRepo {
 			.returningAll()
 			.executeTakeFirstOrThrow()
 
-		return row
+		return row ? this.toDomain(row) : null
 	}
 
 	async findPlainTextByVideoId(
@@ -37,10 +42,6 @@ export class VideoCaptionRepo {
 			.where("videoId", "=", videoId)
 			.executeTakeFirst()
 
-		if (!row) {
-			return null
-		}
-
-		return row.plainText
+		return row?.plainText ?? null
 	}
 }

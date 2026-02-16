@@ -1,5 +1,6 @@
 import { z } from "zod"
-import { videoInfoPayloadSchema, videoSchema } from "./domain.js"
+import { videoInfoSchema } from "../video-info/domain.js"
+import { videoSchema } from "./domain.js"
 
 export const createVideoResponseSchema = videoSchema
 	.omit({ createdAt: true, updatedAt: true })
@@ -17,6 +18,6 @@ export const videoStatusResponseSchema = videoSchema
 export type VideoStatusResponse = z.infer<typeof videoStatusResponseSchema>
 
 export const videoResponseSchema = videoSchema.extend({
-	info: videoInfoPayloadSchema.nullable(),
+	info: videoInfoSchema.nullable(),
 })
 export type VideoResponse = z.infer<typeof videoResponseSchema>

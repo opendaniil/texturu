@@ -1,5 +1,5 @@
-import { videoSchema } from "@tubebook/schemas"
 import z from "zod"
+import { videoSchema } from "../video/domain"
 
 export const videoCaptionSchema = z.object({
 	id: z.uuidv7(),

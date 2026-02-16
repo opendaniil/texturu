@@ -5,7 +5,7 @@ import { AppConfigModule } from "./infra/app-config/app-config.module"
 import { DatabaseModule } from "./infra/database/database.module"
 import { HealthModule } from "./infra/health/health.module"
 import { QueueModule } from "./infra/queue/queue.module"
-import { VideoModule } from "./modules/video/video.module"
+import { VideoModule } from "./modules/video"
 
 @Module({
 	imports: [

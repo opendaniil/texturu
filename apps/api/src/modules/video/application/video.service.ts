@@ -5,18 +5,15 @@ import {
 	ServiceUnavailableException,
 } from "@nestjs/common"
 import { UowService } from "src/infra/database/unit-of-work.service"
-import {
-	VideoJobEnqueueError,
-	VideoJobsService,
-} from "../video-jobs/video-jobs.service"
-import { CreateVideoDto } from "./dto/create-video.dto"
-import { CreateVideoResponseDto } from "./dto/create-video-response.dto"
-import { VideoArticleResponseDto } from "./dto/video-article-response.dto"
-import { VideoResponseDto } from "./dto/video-response.dto"
-import { VideoStatusResponseDto } from "./dto/video-status-response.dto"
-import { VideoRepo } from "./video.repo"
-import { VideoArticleRepo } from "./video-article.repo"
-import { VideoInfoRepo } from "./video-info.repo"
+import { VideoRepo } from "../data/video.repo"
+import { VideoArticleRepo } from "../data/video-article.repo"
+import { VideoInfoRepo } from "../data/video-info.repo"
+import { type CreateVideoDto } from "../entrypoint/rest/dto/create-video.dto"
+import { type CreateVideoResponseDto } from "../entrypoint/rest/dto/create-video-response.dto"
+import { type VideoArticleResponseDto } from "../entrypoint/rest/dto/video-article-response.dto"
+import { type VideoResponseDto } from "../entrypoint/rest/dto/video-response.dto"
+import { type VideoStatusResponseDto } from "../entrypoint/rest/dto/video-status-response.dto"
+import { VideoJobEnqueueError, VideoJobsService } from "./video-jobs.service"
 
 @Injectable()
 export class VideoService {

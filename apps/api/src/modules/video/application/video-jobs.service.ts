@@ -1,16 +1,12 @@
 import { InjectQueue } from "@nestjs/bullmq"
 import { Injectable } from "@nestjs/common"
 import { Queue } from "bullmq"
-import { QUEUES } from "src/infra/queue/queue.module"
-
-export type FetchCaptionsJobData = {
-	videoId: string
-	externalId: string
-}
-
-export type GenerateArticleJobData = {
-	videoId: string
-}
+import {
+	type FetchCaptionsJobData,
+	type FetchInfoJobData,
+	type GenerateArticleJobData,
+	QUEUES,
+} from "./video-jobs.contract"
 
 export class VideoJobEnqueueError extends Error {
 	constructor(message: string, cause?: unknown) {
@@ -25,8 +21,8 @@ const DEFAULT_JOB_OPTIONS = {
 		type: "exponential" as const,
 		delay: 5000,
 	},
-	removeOnComplete: 1000,
-	removeOnFail: 1000,
+	removeOnComplete: 10,
+	removeOnFail: 100,
 }
 
 @Injectable()
@@ -37,7 +33,7 @@ export class VideoJobsService {
 		@InjectQueue(QUEUES.GENERATE_ARTICLE) private readonly generateQueue: Queue
 	) {}
 
-	async enqueueFetchInfo(payload: FetchCaptionsJobData) {
+	async enqueueFetchInfo(payload: FetchInfoJobData) {
 		await this.enqueue(
 			this.fetchInfoQueue,
 			QUEUES.FETCHING_INFO,

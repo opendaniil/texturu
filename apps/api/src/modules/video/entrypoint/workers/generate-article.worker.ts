@@ -1,13 +1,11 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Injectable, Logger } from "@nestjs/common"
 import { Job } from "bullmq"
-import { UowService } from "src/infra/database/unit-of-work.service"
-import { QUEUES } from "src/infra/queue/queue.module"
-import { VideoRepo } from "../video/video.repo"
-import { VideoArticleRepo } from "../video/video-article.repo"
-import { VideoCaptionRepo } from "../video/video-caption.repo"
-import { MastraService } from "./mastra.service"
-import { GenerateArticleJobData } from "./video-jobs.service"
+import { GenerateArticleService } from "../../application/generate-article.service"
+import {
+	type GenerateArticleJobData,
+	QUEUES,
+} from "../../application/video-jobs.contract"
 
 type ProcessPayload = GenerateArticleJobData
 
@@ -16,51 +14,14 @@ type ProcessPayload = GenerateArticleJobData
 export class GenerateArticleWorker extends WorkerHost {
 	private logger = new Logger(GenerateArticleWorker.name)
 
-	constructor(
-		private readonly mastraService: MastraService,
-		private readonly videoRepo: VideoRepo,
-		private readonly videoArticleRepo: VideoArticleRepo,
-		private readonly videoCaptionRepo: VideoCaptionRepo,
-		private readonly uow: UowService
-	) {
+	constructor(private readonly videoWorkflowService: GenerateArticleService) {
 		super()
 	}
 
 	async process(job: Job<ProcessPayload>) {
-		const { videoId } = job.data
-
 		try {
 			this.logger.log(`Start jobId=${job.id} attempt=${job.attemptsMade + 1}`)
-			await this.videoRepo.updateStatus(videoId, {
-				status: "processing",
-				statusMessage: "Создание статьи",
-			})
-
-			const plainText =
-				await this.videoCaptionRepo.findPlainTextByVideoId(videoId)
-			if (!plainText) {
-				throw new Error(`No plain text found for video ${videoId}`)
-			}
-
-			const articleData = await this.mastraService.generateArticle(plainText)
-			await this.uow.run(async (trx) => {
-				await this.videoArticleRepo.upsertByVideoId(
-					{
-						videoId,
-						title: articleData.title,
-						article: articleData.article,
-					},
-					trx
-				)
-				await this.videoRepo.updateStatus(
-					videoId,
-					{
-						status: "done",
-						statusMessage: "Статья создана",
-					},
-					trx
-				)
-			})
+			await this.videoWorkflowService.process(job.data)
 		} catch (error) {
 			this.logger.error(
 				`Failed jobId=${job.id} attempt=${job.attemptsMade + 1}`,
@@ -91,10 +52,7 @@ export class GenerateArticleWorker extends WorkerHost {
 			error.stack
 		)
 		try {
-			await this.videoRepo.updateStatus(job.data.videoId, {
-				status: "error",
-				statusMessage: message,
-			})
+			await this.videoWorkflowService.markFailed(job.data.videoId, message)
 		} catch (updateError) {
 			this.logger.error(
 				`Failed to update video status for jobId=${job.id}`,
