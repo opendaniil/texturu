@@ -1,3 +1,3 @@
-import { StatusPage } from "./ui"
+import StatusPage from "./ui/status-page"
 
 export { StatusPage }

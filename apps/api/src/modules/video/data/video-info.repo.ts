@@ -5,6 +5,20 @@ import { Database } from "src/infra/database/database.module"
 import { InjectDb } from "src/infra/database/inject.decorator"
 
 type VideoInfoRow = Selectable<Database["videoInfos"]>
+type UpsertVideoInfoParams = {
+	videoId: string
+} & Pick<
+	VideoInfo,
+	| "fulltitle"
+	| "description"
+	| "channelId"
+	| "channelTitle"
+	| "duration"
+	| "categories"
+	| "tags"
+	| "language"
+	| "uploadDate"
+>
 
 @Injectable()
 export class VideoInfoRepo {
@@ -28,7 +42,7 @@ export class VideoInfoRepo {
 	}
 
 	async upsertByVideoId(
-		params: { videoId: string } & Partial<VideoInfo>,
+		params: UpsertVideoInfoParams,
 		executor: InjectDb.Client = this.db
 	): Promise<VideoInfo | null> {
 		const row = await executor
@@ -44,6 +58,7 @@ export class VideoInfoRepo {
 					categories: params.categories,
 					tags: params.tags,
 					language: params.language,
+					uploadDate: params.uploadDate,
 					updatedAt: sql`now()`,
 				})
 			)

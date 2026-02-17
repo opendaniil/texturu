@@ -26,7 +26,12 @@ export class VideoArticleRepo {
 	}
 
 	async upsertByVideoId(
-		params: { videoId: string; title: string; article: string },
+		params: {
+			videoId: string
+			title: string
+			description: string
+			article: string
+		},
 		executor: InjectDb.Client = this.db
 	): Promise<Selectable<VideoArticles> | null> {
 		const row = await executor
@@ -35,6 +40,7 @@ export class VideoArticleRepo {
 			.onConflict((oc) =>
 				oc.column("videoId").doUpdateSet({
 					title: params.title,
+					description: params.description,
 					article: params.article,
 					updatedAt: sql`now()`,
 				})

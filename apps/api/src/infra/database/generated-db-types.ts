@@ -26,6 +26,7 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 export interface VideoArticles {
   article: string;
   createdAt: Generated<Timestamp>;
+  description: Generated<string>;
   id: Generated<string>;
   title: string;
   updatedAt: Generated<Timestamp>;
@@ -43,16 +44,17 @@ export interface VideoCaptions {
 
 export interface VideoInfos {
   categories: Generated<string[]>;
-  channelId: string | null;
-  channelTitle: string | null;
+  channelId: Generated<string>;
+  channelTitle: Generated<string>;
   createdAt: Generated<Timestamp>;
-  description: string | null;
-  duration: number | null;
-  fulltitle: string | null;
+  description: Generated<string>;
+  duration: Generated<number>;
+  fulltitle: Generated<string>;
   id: Generated<string>;
-  language: string | null;
+  language: Generated<string>;
   tags: Generated<string[]>;
   updatedAt: Generated<Timestamp>;
+  uploadDate: Generated<string>;
   videoId: string;
 }
 

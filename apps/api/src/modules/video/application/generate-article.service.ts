@@ -34,6 +34,7 @@ export class GenerateArticleService {
 				{
 					videoId,
 					title: articleData.title,
+					description: articleData.description,
 					article: articleData.article,
 				},
 				trx

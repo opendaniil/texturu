@@ -99,8 +99,23 @@ export class VideoService {
 	}
 
 	async getArticle(videoId: string) {
-		const article = await this.videoArticleRepo.findByVideoId(videoId)
+		const [article, info, video] = await Promise.all([
+			this.videoArticleRepo.findByVideoId(videoId),
+			this.videoInfoRepo.findByVideoId(videoId),
+			this.videoRepo.findById(videoId),
+		])
 
-		return article ?? null
+		if (!article || !info || !video) {
+			return null
+		}
+
+		return {
+			...article,
+
+			info,
+
+			source: video.source,
+			externalId: video.externalId,
+		}
 	}
 }

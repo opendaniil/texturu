@@ -50,25 +50,27 @@ export class FetchInfoService {
 		const {
 			fulltitle,
 			description,
-			channel_id,
-			channel,
+			channel_id: channelId,
+			channel: channelTitle,
 			duration,
 			categories,
 			tags,
 			language,
-		} = info as Partial<VideoInfo>
+			upload_date: uploadDate,
+		} = info as VideoInfo
 
 		await this.videoInfoRepo.upsertByVideoId({
 			videoId,
 			...{
 				fulltitle,
 				description,
-				channelId: channel_id,
-				channelTitle: channel,
+				channelId,
+				channelTitle,
 				duration,
 				categories,
 				tags,
 				language,
+				uploadDate,
 			},
 		})
 	}

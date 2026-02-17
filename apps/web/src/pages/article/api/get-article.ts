@@ -1,11 +1,11 @@
-import type { VideoArticle } from "@tubebook/schemas"
+import type { VideoArticleResponse } from "@tubebook/schemas"
 
 export const revalidate = 10
 const apiHost = process.env.API_INTERNAL_HOST
 
 export async function getArticle(
 	videoId: string
-): Promise<VideoArticle | null> {
+): Promise<VideoArticleResponse | null> {
 	const response = await fetch(`${apiHost}/api/video/${videoId}/article`, {
 		method: "GET",
 		headers: { Accept: "application/json" },

@@ -3,6 +3,15 @@ import {
 	articleWorkflowInputSchema,
 	articleWorkflowOutputSchema,
 } from "@tubebook/schemas"
+import z from "zod"
+
+const articleResultSchema = z.object({
+	title: z.string().describe("цепляющее название, ёмкое и краткое, 5-10 слов"),
+	description: z
+		.string()
+		.describe("подробное описание статьи на 2-4 предложения (60-120 слов)"),
+	article: z.string().describe("статья md"),
+})
 
 const createArticle = createStep({
 	id: "create-article",
@@ -17,38 +26,23 @@ const createArticle = createStep({
 			throw new Error("Article agent not found")
 		}
 
-		const article = await agent.generate([
-			{
-				role: "user",
-				content: `
-				ОБРАБОТАЙ ЭТИ СУБТИТРЫ:
-				${subtitles}
-				`,
-			},
-		])
-
-		const title = await agent.generate(
+		const result = await agent.generate(
 			[
 				{
 					role: "user",
-					content: `
-						Дай название для этой статьи:
-						${article.text}
-						`,
+					content: `ОБРАБОТАЙ СУБТИТРЫ:
+					${subtitles}`,
 				},
 			],
 			{
-				instructions: `
-					Ты эксперт по созданию заголовков для статьи.
-					Твоя задача — создать цепляющее название, ёмкое и краткое.
-					Верни только сам заголовок без кавычек, markdown и пояснений.
-					`,
+				structuredOutput: { schema: articleResultSchema },
 			}
 		)
 
 		return {
-			title: title.text.trim(),
-			article: article.text.trim(),
+			title: result.object.title.trim(),
+			description: result.object.description.trim(),
+			article: result.object.article.trim(),
 		}
 	},
 })

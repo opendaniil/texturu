@@ -13,7 +13,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn("status", "text", (col) => col.notNull().defaultTo("queued"))
 		.addColumn("status_message", "text", (col) => col.notNull().defaultTo(""))
 
-		.addColumn("meta", "jsonb")
 		.addColumn("error", "jsonb")
 
 		.addColumn("created_at", "timestamptz", (col) =>
@@ -38,5 +37,5 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-	await db.schema.dropTable("videos").execute()
+	await db.schema.dropTable("videos").ifExists().execute()
 }

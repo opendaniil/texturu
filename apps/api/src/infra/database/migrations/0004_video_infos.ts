@@ -7,18 +7,19 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn("video_id", "uuid", (col) =>
 			col.notNull().references("videos.id").onDelete("cascade").unique()
 		)
-		.addColumn("fulltitle", "text")
-		.addColumn("description", "text")
-		.addColumn("channel_id", "text")
-		.addColumn("channel_title", "text")
-		.addColumn("duration", "integer")
+		.addColumn("fulltitle", "text", (col) => col.notNull().defaultTo(""))
+		.addColumn("description", "text", (col) => col.notNull().defaultTo(""))
+		.addColumn("channel_id", "text", (col) => col.notNull().defaultTo(""))
+		.addColumn("channel_title", "text", (col) => col.notNull().defaultTo(""))
+		.addColumn("duration", "integer", (col) => col.notNull().defaultTo(0))
 		.addColumn("categories", sql`text[]`, (col) =>
 			col.notNull().defaultTo(sql`'{}'::text[]`)
 		)
 		.addColumn("tags", sql`text[]`, (col) =>
 			col.notNull().defaultTo(sql`'{}'::text[]`)
 		)
-		.addColumn("language", "text")
+		.addColumn("language", "text", (col) => col.notNull().defaultTo(""))
+		.addColumn("upload_date", "text", (col) => col.notNull().defaultTo(""))
 		.addColumn("created_at", "timestamptz", (col) =>
 			col.notNull().defaultTo(sql`now()`)
 		)
@@ -26,11 +27,8 @@ export async function up(db: Kysely<any>): Promise<void> {
 			col.notNull().defaultTo(sql`now()`)
 		)
 		.execute()
-
-	await db.schema.alterTable("videos").dropColumn("meta").execute()
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-	await db.schema.alterTable("videos").addColumn("meta", "jsonb").execute()
 	await db.schema.dropTable("video_infos").ifExists().execute()
 }

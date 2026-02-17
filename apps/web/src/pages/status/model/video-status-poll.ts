@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import type { Video, VideoStatusResponse } from "@tubebook/schemas"
-import { statusPoll } from "../api"
+import { statusPoll } from "../api/status-poll"
 
 const POOL_INTERVAL = 5_000
 
