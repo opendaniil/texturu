@@ -1,13 +1,8 @@
 import { notFound } from "next/navigation"
-import { Blogpost } from "@/shared/components/blogpost"
 import { getArticle } from "../api"
+import { Blogpost } from "./blogpost"
 
-export async function generateStaticParams() {
-	return []
-}
-
-export default async function Page({ params }: { params: { slug: string } }) {
-	const { slug } = await params
+export default async function ArticlePage({ slug }: { slug: string }) {
 	const article = await getArticle(slug)
 
 	if (!article) notFound()

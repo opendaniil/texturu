@@ -9,11 +9,10 @@ import {
 const apiHost = process.env.NEXT_PUBLIC_API_HOST
 const statusPollParamsSchema = videoSchema.pick({ id: true })
 
-export const statusPoll: QueryFunction<
-	VideoStatusResponse,
-	["smart-poll", Video["id"]]
-> = async ({ queryKey, signal }) => {
-	const [, videoId] = queryKey
+export async function fetchVideoStatus(
+	videoId: Video["id"],
+	signal?: AbortSignal
+) {
 	const params = statusPollParamsSchema.parse({ id: videoId })
 
 	const r = await fetch(`${apiHost}/api/video/${params.id}/status`, {
@@ -31,4 +30,13 @@ export const statusPoll: QueryFunction<
 	}
 
 	return videoStatusResponseSchema.parse(body)
+}
+
+export const statusPoll: QueryFunction<
+	VideoStatusResponse,
+	["smart-poll", Video["id"]]
+> = async ({ queryKey, signal }) => {
+	const [, videoId] = queryKey
+
+	return fetchVideoStatus(videoId, signal)
 }

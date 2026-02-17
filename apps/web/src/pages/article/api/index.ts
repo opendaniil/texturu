@@ -1,1 +1,3 @@
-export * from "./get-article"
+import { getArticle } from "./get-article"
+
+export { getArticle }

@@ -1,11 +1,8 @@
-import { ArrowRight, ArrowUpRight } from "lucide-react"
-
+import { ArrowUpRight } from "lucide-react"
 import { cn } from "@/shared/lib/utils"
-
 import { Badge } from "@/shared/ui/badge"
-import { Button } from "@/shared/ui/button"
 
-interface Hero1Props {
+interface HeroProps {
 	badge?: string
 	heading?: string
 	description?: string
@@ -13,7 +10,6 @@ interface Hero1Props {
 		src: string
 		alt: string
 	}
-
 	className?: string
 	children?: React.ReactNode
 }
@@ -22,14 +18,13 @@ export const Hero = ({
 	badge = "Your Website Builder",
 	heading = "Blocks Built With Shadcn & Tailwind",
 	description = "Finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project.",
-
 	image = {
 		src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-1.svg",
 		alt: "Hero section demo image showing interface components",
 	},
 	className,
 	children,
-}: Hero1Props) => {
+}: HeroProps) => {
 	return (
 		<section className={cn("py-32", className)}>
 			<div className="container">

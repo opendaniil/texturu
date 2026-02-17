@@ -6,8 +6,8 @@ import Link from "next/link"
 import * as runtime from "react/jsx-runtime"
 import remarkGfm from "remark-gfm"
 import { cn } from "@/shared/lib/utils"
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar"
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 
 const defaultPost = {
 	title: "Designing websites faster with shadcn/ui",
@@ -30,7 +30,7 @@ interface BlogPostData {
 	authorImage: string
 }
 
-interface Blogpost1Props {
+interface BlogpostProps {
 	className?: string
 	post?: BlogPostData
 	article: string
@@ -42,7 +42,7 @@ export const Blogpost = async ({
 	post = defaultPost,
 	article,
 	className,
-}: Blogpost1Props) => {
+}: BlogpostProps) => {
 	const { title, authorName, image, pubDate, description, authorImage } = post
 
 	const { default: MdxContent } = await evaluate(article, {

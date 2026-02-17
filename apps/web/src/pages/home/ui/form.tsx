@@ -51,7 +51,7 @@ export function Form() {
 	return (
 		<form
 			noValidate
-			className="space-y-4 w-full flex flex-row relative"
+			className="space-y-4 w-full flex flex-row "
 			onSubmit={(e) => {
 				e.preventDefault()
 				form.handleSubmit()
@@ -91,20 +91,22 @@ export function Form() {
 				</form.Field>
 			</FieldGroup>
 
-			{addVideoMutation.isError && (
-				<p className="text-sm text-red-600 mt-2 absolute bottom-0">
-					{(addVideoMutation.error as Error).message}
-				</p>
-			)}
-
 			<div className="flex gap-2 justify-end  ">
 				{/* <Button type="button" variant="outline" onClick={() => form.reset()}>
 					<LucideEraser className="h-4 w-4" />
-				</Button> */}
+					</Button> */}
 
 				<Button type="submit" disabled={addVideoMutation.isPending}>
 					{addVideoMutation.isPending ? "Загрузка…" : "Прочитать видео"}
 				</Button>
+			</div>
+
+			<div>
+				{addVideoMutation.isError && (
+					<p className="text-sm text-red-600 mt-2">
+						{(addVideoMutation.error as Error).message}
+					</p>
+				)}
 			</div>
 		</form>
 	)

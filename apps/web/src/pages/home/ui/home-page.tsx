@@ -1,5 +1,5 @@
-import { Hero } from "@/shared/components/hero"
 import { Form } from "./form"
+import { Hero } from "./hero"
 
 export function HomePage() {
 	return (
