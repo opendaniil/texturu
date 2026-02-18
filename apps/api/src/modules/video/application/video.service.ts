@@ -4,6 +4,7 @@ import {
 	Logger,
 	ServiceUnavailableException,
 } from "@nestjs/common"
+import type { ListVideosQuery } from "@tubebook/schemas"
 import { UowService } from "src/infra/database/unit-of-work.service"
 import { VideoRepo } from "../data/video.repo"
 import { VideoArticleRepo } from "../data/video-article.repo"
@@ -80,6 +81,32 @@ export class VideoService {
 			statusMessage,
 			isFinal,
 			updatedAt,
+		}
+	}
+
+	async list(query: ListVideosQuery) {
+		const { items: videos, rowCount } = await this.videoRepo.findPage(query)
+
+		if (videos.length === 0) {
+			return {
+				items: [],
+				rowCount,
+			}
+		}
+
+		const videoIds = videos.map((video) => video.id)
+		const infos = await this.videoInfoRepo.findByVideoIds(videoIds)
+
+		const infoByVideoId = new Map(infos.map((info) => [info.videoId, info]))
+
+		const videosWithInfo = videos.map((video) => ({
+			...video,
+			info: infoByVideoId.get(video.id) ?? null,
+		}))
+
+		return {
+			items: videosWithInfo,
+			rowCount,
 		}
 	}
 

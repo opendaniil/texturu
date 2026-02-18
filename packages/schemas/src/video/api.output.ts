@@ -21,3 +21,9 @@ export const videoResponseSchema = videoApiSchema.extend({
 	info: videoInfoApiSchema.nullable(),
 })
 export type VideoResponse = z.infer<typeof videoResponseSchema>
+
+export const listVideosResponseSchema = z.object({
+	items: z.array(videoResponseSchema),
+	rowCount: z.number().int().nonnegative(),
+})
+export type ListVideosResponse = z.infer<typeof listVideosResponseSchema>

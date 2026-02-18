@@ -41,6 +41,21 @@ export class VideoInfoRepo {
 		return row ? this.toDomain(row) : null
 	}
 
+	async findByVideoIds(
+		videoIds: string[],
+		executor: InjectDb.Client = this.db
+	): Promise<VideoInfo[]> {
+		if (videoIds.length === 0) return []
+
+		const rows = await executor
+			.selectFrom("videoInfos")
+			.selectAll()
+			.where("videoId", "in", videoIds)
+			.execute()
+
+		return rows.map((row) => this.toDomain(row))
+	}
+
 	async upsertByVideoId(
 		params: UpsertVideoInfoParams,
 		executor: InjectDb.Client = this.db

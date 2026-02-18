@@ -7,11 +7,14 @@ import {
 	NotFoundException,
 	Param,
 	Post,
+	Query,
 } from "@nestjs/common"
 import { ApiOkResponse } from "@nestjs/swagger"
 import { VideoService } from "../../application/video.service"
 import { CreateVideoDto } from "./dto/create-video.dto"
 import { CreateVideoResponseDto } from "./dto/create-video-response.dto"
+import { ListVideosQueryDto } from "./dto/list-videos-query.dto"
+import { ListVideosResponseDto } from "./dto/list-videos-response.dto"
 import { VideoArticleResponseDto } from "./dto/video-article-response.dto"
 import { VideoIdDto } from "./dto/video-id.dto"
 import { VideoResponseDto } from "./dto/video-response.dto"
@@ -26,6 +29,12 @@ export class VideoController {
 	@ApiOkResponse({ type: CreateVideoResponseDto })
 	create(@Body() dto: CreateVideoDto) {
 		return this.videoService.create(dto)
+	}
+
+	@Get()
+	@ApiOkResponse({ type: ListVideosResponseDto })
+	list(@Query() query: ListVideosQueryDto) {
+		return this.videoService.list(query)
 	}
 
 	@Get(":id/status")

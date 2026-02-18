@@ -2,7 +2,6 @@
 
 import assert from "node:assert/strict"
 import test from "node:test"
-// @ts-expect-error нужно расширение файла для тестов
 import { linkSchema, parseErrors } from "./link-schema.ts"
 
 const VALID_ID_A = "UEQSkaqrMZA"
