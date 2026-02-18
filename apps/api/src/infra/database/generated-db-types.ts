@@ -9,24 +9,12 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
-export type Json = JsonValue;
-
-export type JsonArray = JsonValue[];
-
-export type JsonObject = {
-  [x: string]: JsonValue | undefined;
-};
-
-export type JsonPrimitive = boolean | number | string | null;
-
-export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
-
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface VideoArticles {
   article: string;
   createdAt: Generated<Timestamp>;
-  description: Generated<string>;
+  description: string;
   id: Generated<string>;
   title: string;
   updatedAt: Generated<Timestamp>;
@@ -43,24 +31,23 @@ export interface VideoCaptions {
 }
 
 export interface VideoInfos {
-  categories: Generated<string[]>;
-  channelId: Generated<string>;
-  channelTitle: Generated<string>;
+  categories: string[];
+  channelId: string;
+  channelTitle: string;
   createdAt: Generated<Timestamp>;
-  description: Generated<string>;
-  duration: Generated<number>;
-  fulltitle: Generated<string>;
+  duration: number;
+  fulltitle: string;
   id: Generated<string>;
-  language: Generated<string>;
-  tags: Generated<string[]>;
+  language: string;
+  tags: string[];
+  thumbnail: string;
   updatedAt: Generated<Timestamp>;
-  uploadDate: Generated<string>;
+  uploadDate: string;
   videoId: string;
 }
 
 export interface Videos {
   createdAt: Generated<Timestamp>;
-  error: Json | null;
   externalId: string;
   id: Generated<string>;
   source: string;

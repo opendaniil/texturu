@@ -5,8 +5,8 @@ import {
 	videoSchema,
 	videoStatusResponseSchema,
 } from "@tubebook/schemas"
+import { apiClient } from "@/shared/lib/api-client.ts"
 
-const apiHost = process.env.NEXT_PUBLIC_API_HOST
 const statusPollParamsSchema = videoSchema.pick({ id: true })
 
 export async function fetchVideoStatus(
@@ -15,19 +15,11 @@ export async function fetchVideoStatus(
 ) {
 	const params = statusPollParamsSchema.parse({ id: videoId })
 
-	const r = await fetch(`${apiHost}/api/video/${params.id}/status`, {
+	const body = await apiClient(`/api/video/${params.id}/status`, {
 		method: "GET",
 		signal,
 		headers: { Accept: "application/json" },
 	})
-	const body = await r.json().catch(() => null)
-
-	if (!r.ok) {
-		throw Object.assign(new Error(body?.message ?? `HTTP ${r.status}`), {
-			status: r.status,
-			body,
-		})
-	}
 
 	return videoStatusResponseSchema.parse(body)
 }

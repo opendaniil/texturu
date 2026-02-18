@@ -2,10 +2,8 @@ import {
 	type ListVideosQuery,
 	type ListVideosResponse,
 	listVideosQuerySchema,
-	listVideosResponseSchema,
 } from "@tubebook/schemas"
-
-const apiHost = process.env.NEXT_PUBLIC_API_HOST
+import { apiClient } from "@/shared/lib/api-client.ts"
 
 export async function getVideos(
 	query: ListVideosQuery,
@@ -27,22 +25,14 @@ export async function getVideos(
 		searchParams.set("q", params.q)
 	}
 
-	const response = await fetch(
-		`${apiHost}/api/video?${searchParams.toString()}`,
+	const body = await apiClient<ListVideosResponse>(
+		`/api/video?${searchParams.toString()}`,
 		{
 			method: "GET",
 			signal,
 			headers: { Accept: "application/json" },
 		}
 	)
-	const body = await response.json().catch(() => null)
 
-	if (!response.ok) {
-		throw Object.assign(new Error(body?.message ?? `HTTP ${response.status}`), {
-			status: response.status,
-			body,
-		})
-	}
-
-	return listVideosResponseSchema.parse(body)
+	return body
 }

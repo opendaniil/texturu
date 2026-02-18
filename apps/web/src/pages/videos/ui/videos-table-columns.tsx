@@ -3,32 +3,21 @@ import type { Video, VideoResponse } from "@tubebook/schemas"
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
+import { VIDEOS_TABLE_SORT_BY } from "../model/videos-table-features"
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ru-RU", {
 	dateStyle: "short",
 	timeStyle: "short",
 })
 
-function formatDateTime(value: string): string {
-	const parsed = new Date(value)
-	if (Number.isNaN(parsed.getTime())) return "—"
-
-	return dateTimeFormatter.format(parsed)
-}
-
-function statusToBadgeVariant(
-	status: Video["status"]
-): "default" | "secondary" | "outline" | "destructive" {
-	switch (status) {
-		case "done":
-			return "default"
-		case "processing":
-			return "secondary"
-		case "queued":
-			return "outline"
-		case "error":
-			return "destructive"
-	}
+const statusBadgeVariantByStatus: Record<
+	Video["status"],
+	"default" | "secondary" | "outline" | "destructive"
+> = {
+	done: "default",
+	processing: "secondary",
+	queued: "outline",
+	error: "destructive",
 }
 
 function SortableHeader({
@@ -68,14 +57,14 @@ export const videosTableColumns: ColumnDef<VideoResponse>[] = [
 		enableSorting: false,
 	},
 	{
-		accessorKey: "externalId",
+		accessorKey: VIDEOS_TABLE_SORT_BY.externalId,
 		header: ({ column }) => (
 			<SortableHeader column={column} label="External ID" />
 		),
 		enableSorting: true,
 	},
 	{
-		id: "fulltitle",
+		id: VIDEOS_TABLE_SORT_BY.fulltitle,
 		accessorFn: (row) => row.info?.fulltitle ?? "",
 		header: ({ column }) => <SortableHeader column={column} label="Название" />,
 		cell: ({ row }) => (
@@ -86,7 +75,7 @@ export const videosTableColumns: ColumnDef<VideoResponse>[] = [
 		enableSorting: true,
 	},
 	{
-		id: "channelTitle",
+		id: VIDEOS_TABLE_SORT_BY.channelTitle,
 		accessorFn: (row) => row.info?.channelTitle ?? "",
 		header: ({ column }) => <SortableHeader column={column} label="Канал" />,
 		cell: ({ row }) => (
@@ -97,10 +86,10 @@ export const videosTableColumns: ColumnDef<VideoResponse>[] = [
 		enableSorting: true,
 	},
 	{
-		accessorKey: "status",
+		accessorKey: VIDEOS_TABLE_SORT_BY.status,
 		header: ({ column }) => <SortableHeader column={column} label="Статус" />,
 		cell: ({ row }) => (
-			<Badge variant={statusToBadgeVariant(row.original.status)}>
+			<Badge variant={statusBadgeVariantByStatus[row.original.status]}>
 				{row.original.status}
 			</Badge>
 		),
@@ -117,11 +106,17 @@ export const videosTableColumns: ColumnDef<VideoResponse>[] = [
 		enableSorting: false,
 	},
 	{
-		accessorKey: "updatedAt",
+		accessorKey: VIDEOS_TABLE_SORT_BY.updatedAt,
 		header: ({ column }) => (
 			<SortableHeader column={column} label="Обновлено" />
 		),
-		cell: ({ row }) => formatDateTime(row.original.updatedAt),
+		cell: ({ row }) => {
+			const parsed = new Date(row.original.updatedAt)
+
+			return Number.isNaN(parsed.getTime())
+				? "—"
+				: dateTimeFormatter.format(parsed)
+		},
 		enableSorting: true,
 	},
 ]

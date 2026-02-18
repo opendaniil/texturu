@@ -2,32 +2,19 @@ import {
 	type CreateVideoRequest,
 	type CreateVideoResponse,
 	createVideoRequestSchema,
-	createVideoResponseSchema,
 } from "@tubebook/schemas"
-
-const apiHost = process.env.NEXT_PUBLIC_API_HOST
+import { apiClient } from "@/shared/lib/api-client.ts"
 
 type Params = CreateVideoRequest
 
-export const addVideo = async ({
-	source = "youtube",
-	externalId,
-}: Params): Promise<CreateVideoResponse> => {
+export const addVideo = async ({ source = "youtube", externalId }: Params) => {
 	const payload = createVideoRequestSchema.parse({ source, externalId })
 
-	const r = await fetch(`${apiHost}/api/video`, {
+	const body = await apiClient<CreateVideoResponse>("/api/video", {
 		method: "POST",
 		headers: { Accept: "application/json", "Content-Type": "application/json" },
 		body: JSON.stringify(payload),
 	})
-	const body = await r.json().catch(() => null)
 
-	if (!r.ok) {
-		throw Object.assign(new Error(body?.message ?? `HTTP ${r.status}`), {
-			status: r.status,
-			body,
-		})
-	}
-
-	return createVideoResponseSchema.parse(body)
+	return body
 }

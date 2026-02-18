@@ -49,9 +49,9 @@ export class FetchInfoService {
 
 		const {
 			fulltitle,
-			description,
 			channel_id: channelId,
 			channel: channelTitle,
+			thumbnail,
 			duration,
 			categories,
 			tags,
@@ -63,7 +63,7 @@ export class FetchInfoService {
 			videoId,
 			...{
 				fulltitle,
-				description,
+				thumbnail,
 				channelId,
 				channelTitle,
 				duration,

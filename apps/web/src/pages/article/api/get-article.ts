@@ -1,27 +1,27 @@
 import type { VideoArticleResponse } from "@tubebook/schemas"
+import { ApiClientError, apiClient } from "@/shared/lib/api-client.ts"
 
 export const revalidate = 10
-const apiHost = process.env.API_INTERNAL_HOST
 
 export async function getArticle(
 	videoId: string
 ): Promise<VideoArticleResponse | null> {
-	const response = await fetch(`${apiHost}/api/video/${videoId}/article`, {
-		method: "GET",
-		headers: { Accept: "application/json" },
-		next: {
-			revalidate,
-			tags: [`article:${videoId}`],
-		},
-	})
-
-	if (response.status === 404) return null
-
-	const body = await response.json().catch(() => null)
-
-	if (!response.ok) {
-		throw new Error(body?.message ?? `HTTP ${response.status}`)
+	try {
+		return await apiClient<VideoArticleResponse>(
+			`/api/video/${videoId}/article`,
+			{
+				method: "GET",
+				headers: { Accept: "application/json" },
+				next: {
+					revalidate,
+					tags: [`article:${videoId}`],
+				},
+			}
+		)
+	} catch (error) {
+		if (error instanceof ApiClientError && error.status === 404) {
+			return null
+		}
+		throw error
 	}
-
-	return body
 }

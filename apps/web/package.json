@@ -3,8 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "nodemon --config nodemon.json",
-		"start:dev": "next dev --webpack -p 80",
+		"dev:local": "dotenv -e ../../.env -- next dev --turbopack -p 80",
 		"build": "next build",
 		"start": "next start",
 		"test": "node --test"
@@ -23,6 +22,7 @@
 		"lucide-react": "^0.563.0",
 		"motion": "^12.34.1",
 		"next": "16.1.6",
+		"nuqs": "^2.8.8",
 		"radix-ui": "^1.4.3",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
@@ -38,6 +38,7 @@
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"dotenv-cli": "^11.0.0",
 		"tailwindcss": "^4",
 		"typescript": "^5"
 	}

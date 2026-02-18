@@ -5,20 +5,7 @@ import { Database } from "src/infra/database/database.module"
 import { InjectDb } from "src/infra/database/inject.decorator"
 
 type VideoInfoRow = Selectable<Database["videoInfos"]>
-type UpsertVideoInfoParams = {
-	videoId: string
-} & Pick<
-	VideoInfo,
-	| "fulltitle"
-	| "description"
-	| "channelId"
-	| "channelTitle"
-	| "duration"
-	| "categories"
-	| "tags"
-	| "language"
-	| "uploadDate"
->
+type VideoInfoParams = Omit<VideoInfo, "id" | "createdAt" | "updatedAt">
 
 @Injectable()
 export class VideoInfoRepo {
@@ -57,7 +44,7 @@ export class VideoInfoRepo {
 	}
 
 	async upsertByVideoId(
-		params: UpsertVideoInfoParams,
+		params: VideoInfoParams,
 		executor: InjectDb.Client = this.db
 	): Promise<VideoInfo | null> {
 		const row = await executor
@@ -66,7 +53,6 @@ export class VideoInfoRepo {
 			.onConflict((oc) =>
 				oc.column("videoId").doUpdateSet({
 					fulltitle: params.fulltitle,
-					description: params.description,
 					channelId: params.channelId,
 					channelTitle: params.channelTitle,
 					duration: params.duration,

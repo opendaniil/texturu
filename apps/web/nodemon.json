@@ -1,8 +1,0 @@
-{
-	"watch": ["../../packages/schemas/dist"],
-	"ext": "ts,js,json",
-	"ignore": ["dist", "node_modules"],
-	"exec": "sh -lc 'while true; do pnpm run start:dev; code=$?; echo \"[web] next exited with $code - restarting in 1s\"; sleep 1; done'",
-	"legacyWatch": true,
-	"delay": "200"
-}

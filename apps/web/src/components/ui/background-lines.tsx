@@ -91,6 +91,7 @@ const SVG = ({
 		"#604483",
 	]
 	return (
+		// biome-ignore lint/a11y/noSvgWithoutTitle: shadcn default
 		<motion.svg
 			viewBox="0 0 1440 900"
 			fill="none"
@@ -117,7 +118,10 @@ const SVG = ({
 						delay: Math.floor(Math.random() * 10),
 						repeatDelay: Math.floor(Math.random() * 10 + 2),
 					}}
-					key={`path-first-${idx}`}
+					key={`path-first-${
+						// biome-ignore lint/suspicious/noArrayIndexKey: shadcn default
+						idx
+					}`}
 				/>
 			))}
 
@@ -139,7 +143,10 @@ const SVG = ({
 						delay: Math.floor(Math.random() * 10),
 						repeatDelay: Math.floor(Math.random() * 10 + 2),
 					}}
-					key={`path-second-${idx}`}
+					key={`path-second-${
+						// biome-ignore lint/suspicious/noArrayIndexKey: shadcn default
+						idx
+					}`}
 				/>
 			))}
 		</motion.svg>

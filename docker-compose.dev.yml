@@ -25,7 +25,6 @@ services:
     networks:
       - database_network
       - redis_network
-      - web_network
     command: "pnpm --filter ./apps/api dev"
     restart: unless-stopped
 
@@ -107,43 +106,10 @@ services:
     command: "pnpm --filter @tubebook/schemas dev"
     restart: unless-stopped
 
-  web:
-    build:
-      context: .
-      dockerfile: ./apps/web/Dockerfile.dev
-    depends_on:
-      api:
-        condition: service_started
-      schemas:
-        condition: service_started
-    volumes:
-      - ./:/app
-      # Exclude to avoid conflicts
-      - /app/node_modules
-      - /app/apps/web/node_modules
-      - /app/apps/web/.next
-    environment:
-      # for local development
-      WATCHPACK_POLLING: "true"
-      WATCHPACK_POLLING_INTERVAL: "500"
-      CHOKIDAR_USEPOLLING: "true"
-      CHOKIDAR_INTERVAL: "500"
-    env_file:
-      - .env
-    ports:
-      # for local development
-      - '127.0.0.1:${WEB_PORT}:80'
-    networks:
-      - web_network
-    command: "pnpm --filter ./apps/web dev"
-    restart: unless-stopped
-
 networks:
   database_network:
     driver: bridge
   redis_network:
-    driver: bridge
-  web_network:
     driver: bridge
 
 volumes:

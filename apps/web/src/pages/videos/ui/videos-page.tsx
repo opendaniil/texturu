@@ -1,3 +1,4 @@
+import type { ListVideosQuery } from "@tubebook/schemas"
 import { container } from "@/shared/ui/container"
 import { VideosTable } from "./videos-table"
 
@@ -5,7 +6,11 @@ export const metadata = {
 	title: "Все видео",
 }
 
-export function VideosPage() {
+type VideosPageProps = {
+	initialQuery: ListVideosQuery
+}
+
+export function VideosPage({ initialQuery }: VideosPageProps) {
 	return (
 		<main className="min-h-dvh">
 			<section className="py-8 sm:py-12">
@@ -20,7 +25,7 @@ export function VideosPage() {
 						</p>
 					</div>
 
-					<VideosTable />
+					<VideosTable initialQuery={initialQuery} />
 				</div>
 			</section>
 		</main>

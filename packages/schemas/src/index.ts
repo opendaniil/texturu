@@ -1,5 +1,6 @@
 export * from "./article-workflow/api.input"
 export * from "./article-workflow/api.output"
+export * from "./error/api"
 export * from "./video/api"
 export * from "./video/api.input"
 export * from "./video/api.output"

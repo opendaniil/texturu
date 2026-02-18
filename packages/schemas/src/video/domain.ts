@@ -9,9 +9,9 @@ export const videoExternalIdSchema = z
 
 export const videoSchema = z.object({
 	id: z.uuidv7(),
+
 	source: z.enum(["youtube"]),
 	externalId: videoExternalIdSchema,
-
 	status: z.enum(["queued", "processing", "done", "error"]),
 	statusMessage: z.string(),
 

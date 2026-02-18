@@ -6,7 +6,7 @@ export const videoInfoSchema = z.object({
 
 	videoId: videoSchema.shape.id,
 	fulltitle: z.string(),
-	description: z.string(),
+	thumbnail: z.string(),
 	channelId: z.string(),
 	channelTitle: z.string(),
 	duration: z.number().int().nonnegative(),

@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "pnpm compose:down && pnpm compose:up",
-		"proxy": "socat TCP-LISTEN:1088,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:1087",
+		"dev:web": "pnpm --filter ./apps/web dev:local",
 		"compose:up": "docker compose -f './docker-compose.dev.yml' up --build",
 		"compose:down": "docker compose -f ./docker-compose.dev.yml down && docker volume prune -f",
 		"lint": "biome check . --write --diagnostic-level=error"
@@ -13,5 +13,5 @@
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
-	"packageManager": "pnpm@10.29.2"
+	"packageManager": "pnpm@10.30.0"
 }
