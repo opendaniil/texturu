@@ -69,7 +69,9 @@ function VideoActionsCell({ video }: { video: VideoResponse }) {
 
 			<DropdownMenuContent align="end">
 				<DropdownMenuLabel>Действия</DropdownMenuLabel>
-				<DropdownMenuItem onClick={() => navigator.clipboard.writeText(video.id)}>
+				<DropdownMenuItem
+					onClick={() => navigator.clipboard.writeText(video.id)}
+				>
 					Скопировать ID видео
 				</DropdownMenuItem>
 

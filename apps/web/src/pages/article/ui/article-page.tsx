@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar"
 import { Badge } from "@/shared/ui/badge"
 import { container } from "@/shared/ui/container"
 import { getArticle } from "../api/get-article"
+import { ArticleBotDrawer } from "./article-bot-drawer"
 import { ArticleContent } from "./article-content"
 
 export async function generateMetadata({
@@ -131,6 +132,8 @@ export async function ArticlePage({ params }: PageProps) {
 					) : null}
 				</div>
 			</section>
+
+			<ArticleBotDrawer />
 		</main>
 	)
 }

@@ -1,4 +1,4 @@
-import { BackgroundLines } from "@/components/ui/background-lines"
+import { BackgroundLines } from "@/shared/ui/background-lines"
 import { LatestArticles } from "./latest-articles"
 import { SendLinkForm } from "./send-link-form"
 
