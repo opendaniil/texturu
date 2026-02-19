@@ -1,14 +1,12 @@
 import type { Column, ColumnDef } from "@tanstack/react-table"
 import type { Video, VideoResponse } from "@tubebook/schemas"
+import { format, parseISO } from "date-fns"
+import { ru } from "date-fns/locale"
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react"
+import Link from "next/link"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { VIDEOS_TABLE_SORT_BY } from "../model/videos-table-features"
-
-const dateTimeFormatter = new Intl.DateTimeFormat("ru-RU", {
-	dateStyle: "short",
-	timeStyle: "short",
-})
 
 const statusBadgeVariantByStatus: Record<
 	Video["status"],
@@ -50,40 +48,11 @@ export const videosTableColumns: ColumnDef<VideoResponse>[] = [
 		accessorKey: "id",
 		header: "ID",
 		cell: ({ row }) => (
-			<span className="block max-w-[40px] truncate font-mono text-xs">
+			<span className="block max-w-[60px] truncate font-mono text-xs">
 				{row.original.id}
 			</span>
 		),
 		enableSorting: false,
-	},
-	{
-		accessorKey: VIDEOS_TABLE_SORT_BY.externalId,
-		header: ({ column }) => (
-			<SortableHeader column={column} label="External ID" />
-		),
-		enableSorting: true,
-	},
-	{
-		id: VIDEOS_TABLE_SORT_BY.fulltitle,
-		accessorFn: (row) => row.info?.fulltitle ?? "",
-		header: ({ column }) => <SortableHeader column={column} label="Название" />,
-		cell: ({ row }) => (
-			<span className="block max-w-[360px] truncate">
-				{row.original.info?.fulltitle || "—"}
-			</span>
-		),
-		enableSorting: true,
-	},
-	{
-		id: VIDEOS_TABLE_SORT_BY.channelTitle,
-		accessorFn: (row) => row.info?.channelTitle ?? "",
-		header: ({ column }) => <SortableHeader column={column} label="Канал" />,
-		cell: ({ row }) => (
-			<span className="block max-w-[220px] truncate">
-				{row.original.info?.channelTitle || "—"}
-			</span>
-		),
-		enableSorting: true,
 	},
 	{
 		accessorKey: VIDEOS_TABLE_SORT_BY.status,
@@ -106,16 +75,113 @@ export const videosTableColumns: ColumnDef<VideoResponse>[] = [
 		enableSorting: false,
 	},
 	{
-		accessorKey: VIDEOS_TABLE_SORT_BY.updatedAt,
+		id: "article",
+		header: "Статья",
+		cell: ({ row }) => {
+			const isReady = row.original.status === "done"
+
+			if (!isReady) return "—"
+
+			const articleId = row.original.id
+			return (
+				<Link
+					href={`/article/${articleId}`}
+					className="underline underline-offset-2"
+				>
+					Открыть
+				</Link>
+			)
+		},
+		enableSorting: false,
+	},
+
+	{
+		accessorKey: VIDEOS_TABLE_SORT_BY.externalId,
 		header: ({ column }) => (
-			<SortableHeader column={column} label="Обновлено" />
+			<SortableHeader column={column} label="External ID" />
+		),
+		cell: ({ row }) => (
+			<span className="block max-w-[100px] truncate">
+				<Link
+					target="_blank"
+					href={`https://www.youtube.com/watch?v=${row.original.externalId}`}
+				>
+					{row.original.externalId}
+				</Link>
+			</span>
+		),
+		enableSorting: true,
+	},
+	{
+		id: VIDEOS_TABLE_SORT_BY.fulltitle,
+		accessorFn: (row) => row.info?.fulltitle ?? "",
+		header: ({ column }) => <SortableHeader column={column} label="Название" />,
+		cell: ({ row }) => (
+			<span className="block max-w-[360px] truncate">
+				{row.original.info?.fulltitle || "—"}
+			</span>
+		),
+		enableSorting: true,
+	},
+	{
+		id: VIDEOS_TABLE_SORT_BY.channelTitle,
+		accessorFn: (row) => row.info?.channelTitle ?? "",
+		header: ({ column }) => <SortableHeader column={column} label="Канал" />,
+		cell: ({ row }) => (
+			<span className="block max-w-[220px] truncate">
+				<Link
+					target="_blank"
+					href={`https://www.youtube.com/channel/${row.original.info?.channelId}`}
+				>
+					{row.original.info?.channelTitle || "—"}
+				</Link>
+			</span>
+		),
+		enableSorting: true,
+	},
+	{
+		accessorKey: "language",
+		header: "Язык",
+		cell: ({ row }) => (
+			<span className="block max-w-[260px] truncate">
+				{row.original.info?.language || "—"}
+			</span>
+		),
+		enableSorting: false,
+	},
+	{
+		accessorKey: "category",
+		header: "Категории",
+		cell: ({ row }) => (
+			<span className="block max-w-[260px] truncate">
+				{row.original.info?.categories.map((category) => (
+					<Badge key={category} variant={"outline"}>
+						{category}
+					</Badge>
+				))}
+			</span>
+		),
+		enableSorting: false,
+	},
+	{
+		accessorKey: "uploadDate",
+		header: "Создано",
+		cell: ({ row }) => {
+			if (!row.original.info?.uploadDate) return "—"
+			const d = parseISO(row.original.info?.uploadDate)
+
+			return format(d, "d MMMM yyyy", { locale: ru })
+		},
+	},
+	{
+		accessorKey: VIDEOS_TABLE_SORT_BY.createdAt,
+		header: ({ column }) => (
+			<SortableHeader column={column} label="Добавлено" />
 		),
 		cell: ({ row }) => {
-			const parsed = new Date(row.original.updatedAt)
+			const d = parseISO(row.original.createdAt)
 
-			return Number.isNaN(parsed.getTime())
-				? "—"
-				: dateTimeFormatter.format(parsed)
+			return format(d, "d MMMM yyyy", { locale: ru })
 		},
 		enableSorting: true,
 	},

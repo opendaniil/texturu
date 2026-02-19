@@ -4,7 +4,10 @@ import {
 	Logger,
 	ServiceUnavailableException,
 } from "@nestjs/common"
-import type { ListVideosQuery } from "@tubebook/schemas"
+import type {
+	LatestVideoArticlesQuery,
+	ListVideosQuery,
+} from "@tubebook/schemas"
 import { UowService } from "src/infra/database/unit-of-work.service"
 import { VideoRepo } from "../data/video.repo"
 import { VideoArticleRepo } from "../data/video-article.repo"
@@ -144,5 +147,11 @@ export class VideoService {
 			source: video.source,
 			externalId: video.externalId,
 		}
+	}
+
+	async latestArticles(query: LatestVideoArticlesQuery) {
+		const items = await this.videoArticleRepo.findLatest(query.limit)
+
+		return { items }
 	}
 }

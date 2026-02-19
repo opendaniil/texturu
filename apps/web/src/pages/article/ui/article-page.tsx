@@ -23,7 +23,12 @@ export async function generateMetadata({
 	return { title: article.title, description: article.description }
 }
 
-export default async function ArticlePage({ slug }: { slug: string }) {
+type PageProps = {
+	params: Promise<{ slug: string }>
+}
+
+export async function ArticlePage({ params }: PageProps) {
+	const { slug } = await params
 	const article = await getArticle(slug)
 
 	if (!article) return notFound()
@@ -52,11 +57,11 @@ export default async function ArticlePage({ slug }: { slug: string }) {
 				<div
 					className={`${container.narrow} flex flex-col items-center gap-4 text-center`}
 				>
-					<h1 className="max-w-3xl text-5xl font-semibold text-pretty md:text-6xl">
+					<h1 className="text-5xl font-semibold text-pretty md:text-6xl whitespace-normal  [overflow-wrap:anywhere]">
 						{title}
 					</h1>
 
-					<h3 className="max-w-3xl text-lg text-muted-foreground md:text-xl">
+					<h3 className="text-lg text-muted-foreground md:text-xl whitespace-normal break-words">
 						{description}
 					</h3>
 
@@ -101,13 +106,13 @@ export default async function ArticlePage({ slug }: { slug: string }) {
 					</div>
 				</div>
 
-				<div className={`${container.reading} mt-8 flex flex-col gap-4`}>
+				<div className={`${container.reading} flex flex-col gap-4 mt-4`}>
 					<Alert>
 						<Lightbulb className="h-4 w-4" />
 						<AlertTitle>Внимание</AlertTitle>
 						<AlertDescription>
 							Эта статья сгенерирована на основе субтитров видео, возможны
-							ошибки.
+							ошибки
 						</AlertDescription>
 					</Alert>
 

@@ -21,7 +21,7 @@ export const parseErrors = {
 	SHORTS_NOT_SUPPORTED: "Ссылки на Shorts не поддерживаются",
 	PLAYLIST_NOT_SUPPORTED: "Ссылки на плейлисты не поддерживаются",
 	MISSING_VIDEO_ID: "В ссылке не найден идентификатор видео",
-	INVALID_VIDEO_ID: "Неверный идентификатор видео",
+	INVALID_VIDEO_ID: "Неверная ссылка на видео",
 	UNKNOWN_YOUTUBE_URL: "Не удалось найти видео по этой ссылке",
 } as const
 

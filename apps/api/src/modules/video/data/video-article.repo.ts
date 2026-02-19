@@ -1,5 +1,10 @@
 import { Injectable } from "@nestjs/common"
-import { VideoArticle, videoArticleSchema } from "@tubebook/schemas"
+import {
+	type LatestVideoArticle,
+	latestVideoArticleSchema,
+	VideoArticle,
+	videoArticleSchema,
+} from "@tubebook/schemas"
 import { Selectable, sql } from "kysely"
 import { VideoArticles } from "src/infra/database/generated-db-types"
 import { InjectDb } from "src/infra/database/inject.decorator"
@@ -49,5 +54,20 @@ export class VideoArticleRepo {
 			.executeTakeFirstOrThrow()
 
 		return row ? this.toDomain(row) : null
+	}
+
+	async findLatest(
+		limit: number,
+		executor: InjectDb.Client = this.db
+	): Promise<LatestVideoArticle[]> {
+		const rows = await executor
+			.selectFrom("videoArticles")
+			.select(["videoId", "title"])
+			.orderBy("createdAt", "desc")
+			.orderBy("videoId", "desc")
+			.limit(limit)
+			.execute()
+
+		return latestVideoArticleSchema.array().parse(rows)
 	}
 }

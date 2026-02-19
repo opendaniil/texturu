@@ -29,7 +29,6 @@ export function SendLinkForm() {
 		},
 		validators: {
 			onSubmit: formSchema,
-			onBlur: formSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const parsed = formSchema.parse(value)

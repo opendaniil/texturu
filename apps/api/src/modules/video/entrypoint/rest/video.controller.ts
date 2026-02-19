@@ -13,6 +13,8 @@ import { ApiOkResponse } from "@nestjs/swagger"
 import { VideoService } from "../../application/video.service"
 import { CreateVideoDto } from "./dto/create-video.dto"
 import { CreateVideoResponseDto } from "./dto/create-video-response.dto"
+import { LatestVideoArticlesQueryDto } from "./dto/latest-video-articles-query.dto"
+import { LatestVideoArticlesResponseDto } from "./dto/latest-video-articles-response.dto"
 import { ListVideosQueryDto } from "./dto/list-videos-query.dto"
 import { ListVideosResponseDto } from "./dto/list-videos-response.dto"
 import { VideoArticleResponseDto } from "./dto/video-article-response.dto"
@@ -35,6 +37,12 @@ export class VideoController {
 	@ApiOkResponse({ type: ListVideosResponseDto })
 	list(@Query() query: ListVideosQueryDto) {
 		return this.videoService.list(query)
+	}
+
+	@Get("articles/latest")
+	@ApiOkResponse({ type: LatestVideoArticlesResponseDto })
+	latestArticles(@Query() query: LatestVideoArticlesQueryDto) {
+		return this.videoService.latestArticles(query)
 	}
 
 	@Get(":id/status")
