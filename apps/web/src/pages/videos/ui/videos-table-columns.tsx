@@ -2,11 +2,25 @@ import type { Column, ColumnDef } from "@tanstack/react-table"
 import type { Video, VideoResponse } from "@tubebook/schemas"
 import { format, parseISO } from "date-fns"
 import { ru } from "date-fns/locale"
-import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react"
+import {
+	ArrowDownIcon,
+	ArrowUpDownIcon,
+	ArrowUpIcon,
+	MoreHorizontal,
+} from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu"
 import { VIDEOS_TABLE_SORT_BY } from "../model/videos-table-features"
+import { VideoInfoDialog } from "./video-info-dialog"
 
 const statusBadgeVariantByStatus: Record<
 	Video["status"],
@@ -43,7 +57,39 @@ function SortableHeader({
 	)
 }
 
+function VideoActionsCell({ video }: { video: VideoResponse }) {
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button variant="outline" className="h-8 w-8 p-0">
+					<span className="sr-only">Открыть меню</span>
+					<MoreHorizontal className="h-4 w-4" />
+				</Button>
+			</DropdownMenuTrigger>
+
+			<DropdownMenuContent align="end">
+				<DropdownMenuLabel>Действия</DropdownMenuLabel>
+				<DropdownMenuItem onClick={() => navigator.clipboard.writeText(video.id)}>
+					Скопировать ID видео
+				</DropdownMenuItem>
+
+				<DropdownMenuSeparator />
+
+				<VideoInfoDialog video={video}>
+					<DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+						Информация о видео
+					</DropdownMenuItem>
+				</VideoInfoDialog>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	)
+}
+
 export const videosTableColumns: ColumnDef<VideoResponse>[] = [
+	{
+		id: "actions",
+		cell: ({ row }) => <VideoActionsCell video={row.original} />,
+	},
 	{
 		accessorKey: "id",
 		header: "ID",
@@ -68,7 +114,7 @@ export const videosTableColumns: ColumnDef<VideoResponse>[] = [
 		accessorKey: "statusMessage",
 		header: "Сообщение",
 		cell: ({ row }) => (
-			<span className="block max-w-[260px] truncate">
+			<span className="block max-w-[120px] truncate">
 				{row.original.statusMessage || "—"}
 			</span>
 		),
