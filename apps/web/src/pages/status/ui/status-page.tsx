@@ -27,7 +27,7 @@ export default function StatusPage({ slug }: { slug: string }) {
 	const isProcessError = data?.status === "error"
 
 	return (
-		<main className="min-h-dvh">
+		<main className="">
 			<section className="py-8 sm:py-12">
 				<div className={`${container.reading} flex flex-col gap-5`}>
 					<StatusVideo source={data?.source} externalId={data?.externalId} />

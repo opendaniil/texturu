@@ -21,7 +21,7 @@ const createArticle = createStep({
 	execute: async ({ inputData, mastra }) => {
 		const { subtitles } = inputData
 
-		const agent = mastra?.getAgent("articleAgent")
+		const agent = mastra?.getAgent("createArticleAgent")
 		if (!agent) {
 			throw new Error("Article agent not found")
 		}
@@ -47,12 +47,12 @@ const createArticle = createStep({
 	},
 })
 
-const articleWorkflow = createWorkflow({
+const createArticleWorkflow = createWorkflow({
 	id: "article-workflow",
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: articleWorkflowOutputSchema,
 }).then(createArticle)
 
-articleWorkflow.commit()
+createArticleWorkflow.commit()
 
-export { articleWorkflow }
+export { createArticleWorkflow }

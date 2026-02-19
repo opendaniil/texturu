@@ -18,7 +18,7 @@ export class MastraService {
 	}
 
 	async generateArticle(subtitles: string): Promise<ArticleWorkflowOutput> {
-		const workflow = this.client.getWorkflow("articleWorkflow")
+		const workflow = this.client.getWorkflow("createArticleWorkflow")
 		const run = await workflow.createRun()
 		const inputData = articleWorkflowInputSchema.parse({ subtitles })
 

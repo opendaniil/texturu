@@ -9,12 +9,13 @@ import {
 	SensitiveDataFilter,
 } from "@mastra/observability"
 import { articleAgent } from "./agents/article-agent"
+import { createArticleAgent } from "./agents/create-article-agent"
 import { postgres, postgresVector } from "./store/pg"
-import { articleWorkflow } from "./workflows/article-workflow"
+import { createArticleWorkflow } from "./workflows/create-article-workflow"
 
 export const mastra = new Mastra({
-	workflows: { articleWorkflow },
-	agents: { articleAgent },
+	workflows: { createArticleWorkflow },
+	agents: { createArticleAgent, articleAgent },
 
 	memory: {
 		default: new Memory({
