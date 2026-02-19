@@ -24,7 +24,7 @@ export function Header() {
 			<nav
 				className={cn(
 					container.default,
-					"flex h-16 w-full items-center justify-between gap-4"
+					"max-w-5xl flex h-16 w-full items-center justify-between gap-4"
 				)}
 			>
 				<Link
