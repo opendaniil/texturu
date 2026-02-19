@@ -6,6 +6,7 @@ import { AppConfigModule } from "./infra/app-config/app-config.module"
 import { DatabaseModule } from "./infra/database/database.module"
 import { HealthModule } from "./infra/health/health.module"
 import { QueueModule } from "./infra/queue/queue.module"
+import { ChatModule } from "./modules/chat"
 import { VideoModule } from "./modules/video"
 
 @Module({
@@ -14,6 +15,7 @@ import { VideoModule } from "./modules/video"
 		DatabaseModule,
 		QueueModule,
 		HealthModule,
+		ChatModule,
 		VideoModule,
 	],
 	controllers: [],

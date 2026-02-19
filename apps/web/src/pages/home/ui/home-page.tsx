@@ -1,4 +1,5 @@
 import { BackgroundLines } from "@/shared/ui/background-lines"
+import { container } from "@/shared/ui/container"
 import { LatestArticles } from "./latest-articles"
 import { SendLinkForm } from "./send-link-form"
 
@@ -8,8 +9,8 @@ export function HomePage() {
 		"Вставь ссылку и получи структурированный конспект за несколько минут вместо долгого просмотра."
 
 	return (
-		<main className="">
-			<section className="flex h-full h-full w-screen items-center justify-center overflow-hidden py-32">
+		<main className={container.default}>
+			<section className="flex h-full h-full w-full items-center justify-center overflow-hidden py-32">
 				<BackgroundLines className="container flex w-full flex-col items-center justify-center px-4 md:h-full">
 					<h1 className="relative z-20 py-2 text-center font-sans text-4xl font-semibold tracking-tighter text-balance md:py-10 sm:text-5xl lg:text-6xl">
 						{heading}
@@ -27,6 +28,7 @@ export function HomePage() {
 						<h3 className="relative z-20 text-center font-sans tracking-tighter text-balance py-2 text-2xl font-semibold text-muted-foreground">
 							Недавние статьи
 						</h3>
+
 						<LatestArticles />
 					</div>
 				</BackgroundLines>

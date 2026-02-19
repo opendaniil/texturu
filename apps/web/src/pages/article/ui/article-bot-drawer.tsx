@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
+import { sendChatMessage } from "../api/send-chat-message"
 import {
 	Conversation,
 	ConversationContent,
@@ -41,28 +42,48 @@ type ChatItem = {
 export function ArticleBotDrawer() {
 	const nextIdRef = useRef(0)
 	const [messages, setMessages] = useState<ChatItem[]>([])
+	const [isSending, setIsSending] = useState(false)
 
-	const handleSubmit = useCallback(({ text }: PromptInputMessage) => {
-		const trimmedText = text.trim()
-		const userContent = trimmedText
+	const handleSubmit = useCallback(
+		async ({ text }: PromptInputMessage) => {
+			if (isSending) return
 
-		if (!userContent) return
+			const userContent = text.trim()
+			if (!userContent) return
 
-		const userMessage: ChatItem = {
-			id: nextIdRef.current++,
-			role: "user",
-			content: userContent,
-		}
+			const userMessage: ChatItem = {
+				id: nextIdRef.current++,
+				role: "user",
+				content: userContent,
+			}
 
-		const assistantMessage: ChatItem = {
-			id: nextIdRef.current++,
-			role: "assistant",
-			content:
-				"Сообщение получил. Подключим ответы ассистента в следующем шаге.",
-		}
+			setMessages((prev) => [...prev, userMessage])
+			setIsSending(true)
 
-		setMessages((prev) => [...prev, userMessage, assistantMessage])
-	}, [])
+			try {
+				const { message } = await sendChatMessage({ message: userContent })
+				const assistantMessage: ChatItem = {
+					id: nextIdRef.current++,
+					role: "assistant",
+					content: message,
+				}
+
+				setMessages((prev) => [...prev, assistantMessage])
+			} catch {
+				const assistantErrorMessage: ChatItem = {
+					id: nextIdRef.current++,
+					role: "assistant",
+					content:
+						"Не удалось получить ответ ассистента. Попробуйте отправить сообщение снова.",
+				}
+
+				setMessages((prev) => [...prev, assistantErrorMessage])
+			} finally {
+				setIsSending(false)
+			}
+		},
+		[isSending]
+	)
 
 	return (
 		<Drawer>
@@ -105,11 +126,14 @@ export function ArticleBotDrawer() {
 				<DrawerFooter className="gap-3 border-t">
 					<PromptInput onSubmit={handleSubmit}>
 						<PromptInputBody>
-							<PromptInputTextarea placeholder="Ваше сообщение..." />
+							<PromptInputTextarea
+								placeholder="Ваше сообщение..."
+								disabled={isSending}
+							/>
 						</PromptInputBody>
 						<PromptInputFooter>
 							<PromptInputTools />
-							<PromptInputSubmit />
+							<PromptInputSubmit disabled={isSending} />
 						</PromptInputFooter>
 					</PromptInput>
 					<DrawerClose asChild>
