@@ -6,6 +6,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar"
+import { Badge } from "@/shared/ui/badge"
 import { container } from "@/shared/ui/container"
 import { getArticle } from "../api/get-article"
 import { ArticleContent } from "./article-content"
@@ -50,6 +51,7 @@ export async function ArticlePage({ params }: PageProps) {
 	const formatedCreatedAt = format(createdAt, "d MMMM yyyy", { locale: ru })
 	const llmImage =
 		"https://upload.wikimedia.org/wikipedia/commons/e/ef/ChatGPT-Logo.svg"
+	const infoTags = Array.from(new Set([...info.categories, ...info.tags]))
 
 	return (
 		<main className="min-h-dvh">
@@ -117,6 +119,16 @@ export async function ArticlePage({ params }: PageProps) {
 					</Alert>
 
 					<ArticleContent content={article.article} />
+
+					{infoTags.length > 0 ? (
+						<div className="flex flex-wrap justify-center gap-2">
+							{infoTags.map((tag) => (
+								<Badge key={tag} variant="outline">
+									{tag}
+								</Badge>
+							))}
+						</div>
+					) : null}
 				</div>
 			</section>
 		</main>
