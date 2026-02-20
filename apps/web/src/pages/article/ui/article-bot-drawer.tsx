@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
-import { sendChatMessage } from "../api/send-chat-message"
 import {
 	Conversation,
 	ConversationContent,
@@ -32,6 +31,7 @@ import {
 	DrawerTitle,
 	DrawerTrigger,
 } from "@/shared/ui/drawer"
+import { sendChatMessage } from "../api/send-chat-message"
 
 type ChatItem = {
 	id: number
