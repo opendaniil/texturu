@@ -10,8 +10,11 @@ import {
 } from "@mastra/observability"
 import { articleAgent } from "./agents/article-agent"
 import { createArticleAgent } from "./agents/create-article-agent"
+import { createIndexes } from "./store/create-indexes"
 import { postgres, postgresVector } from "./store/pg"
 import { createArticleWorkflow } from "./workflows/create-article-workflow"
+
+await createIndexes()
 
 export const mastra = new Mastra({
 	workflows: { createArticleWorkflow },

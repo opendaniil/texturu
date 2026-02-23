@@ -17,13 +17,18 @@ export class MastraService {
 		})
 	}
 
-	async generateArticle(subtitles: string): Promise<ArticleWorkflowOutput> {
+	async generateArticle(
+		videoId: string,
+		subtitles: string
+	): Promise<ArticleWorkflowOutput> {
 		const workflow = this.client.getWorkflow("createArticleWorkflow")
 		const run = await workflow.createRun()
-		const inputData = articleWorkflowInputSchema.parse({ subtitles })
 
 		const result = await run.startAsync({
-			inputData,
+			inputData: {
+				subtitles,
+				videoId,
+			},
 		})
 
 		if (result.status !== "success") {

@@ -28,7 +28,10 @@ export class GenerateArticleService {
 			throw new Error(`No plain text found for video ${videoId}`)
 		}
 
-		const articleData = await this.mastraService.generateArticle(plainText)
+		const articleData = await this.mastraService.generateArticle(
+			videoId,
+			plainText
+		)
 		await this.uow.run(async (trx) => {
 			await this.videoArticleRepo.upsertByVideoId(
 				{

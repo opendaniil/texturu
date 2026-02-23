@@ -23,7 +23,8 @@
 		"db:make": "kysely migrate make"
 	},
 	"dependencies": {
-		"@mastra/client-js": "^1.2.0",
+		"@mastra/ai-sdk": "^1.0.5",
+		"@mastra/client-js": "^1.5.0",
 		"@nestjs/axios": "^4.0.1",
 		"@nestjs/bullmq": "^11.0.4",
 		"@nestjs/common": "^11.0.1",
@@ -34,6 +35,7 @@
 		"@nestjs/swagger": "^11.2.5",
 		"@nestjs/terminus": "^11.0.0",
 		"@tubebook/schemas": "workspace:*",
+		"ai": "6.0.91",
 		"axios": "^1.13.5",
 		"bullmq": "^5.67.2",
 		"joi": "^18.0.2",
@@ -53,7 +55,7 @@
 		"@nestjs/testing": "^11.0.1",
 		"@types/express": "^5.0.0",
 		"@types/jest": "^30.0.0",
-		"@types/node": "^22.10.7",
+		"@types/node": "^24.10.13",
 		"@types/pg": "^8.16.0",
 		"@types/supertest": "^6.0.2",
 		"globals": "^16.0.0",
