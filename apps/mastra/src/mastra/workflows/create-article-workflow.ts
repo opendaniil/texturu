@@ -4,10 +4,8 @@ import {
 	articleWorkflowInputSchema,
 	articleWorkflowOutputSchema,
 } from "@tubebook/schemas"
-import { embedMany } from "ai"
 import z from "zod"
-import { intfloatMultilingualE5 } from "../models/multilingual-e5-large"
-import { postgresVector } from "../store/pg"
+import { ingestSubtitles } from "../store/subtitles"
 
 const articleResultSchema = z.object({
 	title: z.string().describe("цепляющее название, ёмкое и краткое, 5-10 слов"),
@@ -67,23 +65,7 @@ const embedArticle = createStep({
 			overlap: 50,
 		})
 
-		const { embeddings } = await embedMany({
-			model: intfloatMultilingualE5(),
-			values: chunks.map((c) => `passage: ${c.text}`),
-		})
-
-		await postgresVector.upsert({
-			indexName: "subtitles",
-			vectors: embeddings,
-			ids: chunks.map((_, i) => `${videoId}:${i}`),
-			metadata: chunks.map((c, i) => ({
-				videoId,
-				chunkIndex: i,
-				text: c.text,
-				source: "subtitles",
-			})),
-			deleteFilter: { videoId },
-		})
+		await ingestSubtitles(videoId, chunks)
 
 		return
 	},

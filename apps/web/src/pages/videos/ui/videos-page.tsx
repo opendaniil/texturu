@@ -12,7 +12,7 @@ type VideosPageProps = {
 
 export function VideosPage({ initialQuery }: VideosPageProps) {
 	return (
-		<main className="">
+		<main className="container mx-auto">
 			<section className="py-8 sm:py-12">
 				<div className={`${container.default} flex flex-col gap-6`}>
 					<div className="space-y-2">

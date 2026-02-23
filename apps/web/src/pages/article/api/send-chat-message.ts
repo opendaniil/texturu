@@ -6,9 +6,14 @@ import {
 } from "@tubebook/schemas"
 import { apiClient } from "@/shared/lib/api-client.ts"
 
-type Params = ChatRequest
+type Params = ChatRequest & {
+	signal?: AbortSignal
+}
 
-export async function sendChatMessage(params: Params): Promise<ChatResponse> {
+export async function sendChatMessage({
+	signal,
+	...params
+}: Params): Promise<ChatResponse> {
 	const payload = chatRequestSchema.parse(params)
 
 	const body = await apiClient<ChatResponse>("/api/chat", {
@@ -19,6 +24,7 @@ export async function sendChatMessage(params: Params): Promise<ChatResponse> {
 		},
 		body: JSON.stringify(payload),
 		cache: "no-store",
+		signal,
 	})
 
 	return chatResponseSchema.parse(body)

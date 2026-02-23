@@ -1,4 +1,5 @@
 import { MastraClient } from "@mastra/client-js"
+import { RequestContext } from "@mastra/core/request-context"
 import { BadGatewayException, Injectable } from "@nestjs/common"
 import {
 	type ChatRequest,
@@ -27,7 +28,12 @@ export class ChatService {
 	}
 
 	private async generateResponse(message: string): Promise<string> {
+		const videoId = "019c89eb-16a1-76c8-882f-099676ad55c0"
+
 		try {
+			const requestContext = new RequestContext()
+			requestContext.set("article", videoId)
+
 			const articleAgent = this.client.getAgent(this.articleAgentId)
 			const response = await articleAgent.generate(
 				[
@@ -41,6 +47,7 @@ export class ChatService {
 						thread: "demo",
 						resource: "demo",
 					},
+					requestContext,
 				}
 			)
 

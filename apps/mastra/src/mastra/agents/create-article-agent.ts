@@ -5,7 +5,7 @@ import { gptOss120 } from "../models/gpt-oss-120b"
 export const createArticleAgent = new Agent({
 	id: "create-article-agent",
 	name: "Article Agent",
-	model: gptOss120({ temperature: 0, max_tokens: 0 }),
+	model: gptOss120({ temperature: 0 }),
 	tools: {},
 	memory: new Memory({
 		options: {

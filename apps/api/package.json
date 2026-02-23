@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@mastra/ai-sdk": "^1.0.5",
 		"@mastra/client-js": "^1.5.0",
+		"@mastra/core": "^1.5.0",
 		"@nestjs/axios": "^4.0.1",
 		"@nestjs/bullmq": "^11.0.4",
 		"@nestjs/common": "^11.0.1",

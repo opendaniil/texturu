@@ -1,6 +1,8 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useChat } from "@ai-sdk/react"
+import type { UIMessage } from "ai"
+import { useCallback, useMemo } from "react"
 import {
 	Conversation,
 	ConversationContent,
@@ -10,6 +12,7 @@ import {
 import {
 	Message,
 	MessageContent,
+	MessageResponse,
 } from "@/shared/components/ai-elements/message"
 import {
 	PromptInput,
@@ -23,7 +26,6 @@ import {
 import { Button } from "@/shared/ui/button"
 import {
 	Drawer,
-	DrawerClose,
 	DrawerContent,
 	DrawerDescription,
 	DrawerFooter,
@@ -31,18 +33,37 @@ import {
 	DrawerTitle,
 	DrawerTrigger,
 } from "@/shared/ui/drawer"
-import { sendChatMessage } from "../api/send-chat-message"
+import { JsonChatTransportAdapter } from "../api/json-chat-transport-adapter"
 
-type ChatItem = {
-	id: number
-	role: "user" | "assistant"
-	content: string
+const isStreamingStatus = (status: string) =>
+	status === "submitted" || status === "streaming"
+
+const getMessageText = (message: UIMessage): string => {
+	const text = message.parts
+		.filter((part) => part.type === "text")
+		.map((part) => part.text)
+		.join("")
+		.trim()
+
+	if (text.length > 0) {
+		return text
+	}
+
+	if (message.role === "assistant") {
+		return "..."
+	}
+
+	return ""
 }
 
 export function ArticleBotDrawer() {
-	const nextIdRef = useRef(0)
-	const [messages, setMessages] = useState<ChatItem[]>([])
-	const [isSending, setIsSending] = useState(false)
+	const transport = useMemo(() => new JsonChatTransportAdapter(), [])
+
+	const { messages, sendMessage, status, stop, error } = useChat({
+		transport,
+	})
+
+	const isSending = isStreamingStatus(status)
 
 	const handleSubmit = useCallback(
 		async ({ text }: PromptInputMessage) => {
@@ -51,38 +72,11 @@ export function ArticleBotDrawer() {
 			const userContent = text.trim()
 			if (!userContent) return
 
-			const userMessage: ChatItem = {
-				id: nextIdRef.current++,
-				role: "user",
-				content: userContent,
-			}
-
-			setMessages((prev) => [...prev, userMessage])
-			setIsSending(true)
-
-			try {
-				const { message } = await sendChatMessage({ message: userContent })
-				const assistantMessage: ChatItem = {
-					id: nextIdRef.current++,
-					role: "assistant",
-					content: message,
-				}
-
-				setMessages((prev) => [...prev, assistantMessage])
-			} catch {
-				const assistantErrorMessage: ChatItem = {
-					id: nextIdRef.current++,
-					role: "assistant",
-					content:
-						"Не удалось получить ответ ассистента. Попробуйте отправить сообщение снова.",
-				}
-
-				setMessages((prev) => [...prev, assistantErrorMessage])
-			} finally {
-				setIsSending(false)
-			}
+			await sendMessage({
+				text: userContent,
+			})
 		},
-		[isSending]
+		[isSending, sendMessage]
 	)
 
 	return (
@@ -114,13 +108,27 @@ export function ArticleBotDrawer() {
 							) : (
 								messages.map((message) => (
 									<Message key={message.id} from={message.role}>
-										<MessageContent>{message.content}</MessageContent>
+										<MessageContent>
+											{message.role === "assistant" ? (
+												<MessageResponse>
+													{getMessageText(message)}
+												</MessageResponse>
+											) : (
+												getMessageText(message)
+											)}
+										</MessageContent>
 									</Message>
 								))
 							)}
 						</ConversationContent>
 						<ConversationScrollButton />
 					</Conversation>
+					{error && (
+						<div className="px-4 pb-2 text-sm text-destructive">
+							Не удалось получить ответ ассистента. Попробуйте отправить
+							сообщение снова.
+						</div>
+					)}
 				</div>
 
 				<DrawerFooter className="gap-3 border-t">
@@ -129,18 +137,19 @@ export function ArticleBotDrawer() {
 							<PromptInputTextarea
 								placeholder="Ваше сообщение..."
 								disabled={isSending}
+								autoFocus
+								aria-label="Ваше сообщение"
 							/>
 						</PromptInputBody>
 						<PromptInputFooter>
 							<PromptInputTools />
-							<PromptInputSubmit disabled={isSending} />
+							<PromptInputSubmit
+								disabled={status === "submitted"}
+								onStop={stop}
+								status={status}
+							/>
 						</PromptInputFooter>
 					</PromptInput>
-					<DrawerClose asChild>
-						<Button className="w-full" variant="outline">
-							Закрыть
-						</Button>
-					</DrawerClose>
 				</DrawerFooter>
 			</DrawerContent>
 		</Drawer>

@@ -202,6 +202,13 @@ export interface MastraWorkflowSnapshot {
   workflowName: string;
 }
 
+export interface Subtitles {
+  embedding: string | null;
+  id: Generated<number>;
+  metadata: Generated<Json | null>;
+  vectorId: string;
+}
+
 export interface VideoArticles {
   article: string;
   createdAt: Generated<Timestamp>;
@@ -257,6 +264,7 @@ export interface DB {
   mastraScorers: MastraScorers;
   mastraThreads: MastraThreads;
   mastraWorkflowSnapshot: MastraWorkflowSnapshot;
+  subtitles: Subtitles;
   videoArticles: VideoArticles;
   videoCaptions: VideoCaptions;
   videoInfos: VideoInfos;

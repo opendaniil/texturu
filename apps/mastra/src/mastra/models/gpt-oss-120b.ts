@@ -9,7 +9,6 @@ export const gptOss120 = (
 		extraBody: Object.assign(
 			{
 				temperature: 0.3,
-				max_tokens: 256,
 			},
 			extraBody
 		),
