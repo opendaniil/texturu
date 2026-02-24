@@ -1,7 +1,9 @@
 import type { CoreMessage } from "@mastra/core/llm"
 import type { InputProcessor } from "@mastra/core/processors"
+import type { RequestContext } from "@mastra/core/request-context"
 import type { QueryResult } from "@mastra/core/vector"
 import type { MDocument } from "@mastra/rag"
+import type { ChatRequestContext } from "@tubebook/schemas"
 import { embedMany } from "ai"
 import { intfloatMultilingualE5 } from "../models/multilingual-e5-large"
 import { postgresVector } from "./pg"
@@ -51,29 +53,32 @@ export const injectRequestContext: InputProcessor = {
 	id: "inject-request-context",
 
 	async processInput({ messages, systemMessages, requestContext }) {
-		const videoId = requestContext?.get("article") as string | undefined
-		if (!videoId) return { messages, systemMessages }
+		const rc = requestContext as RequestContext<ChatRequestContext>
+		const videoId = rc.get("articleId")
 
-		const lastUserMessage = messages
+		const lastUserMessage = [...messages]
 			.reverse()
 			.find((message) => message.role === "user")
 		const userMessage = lastUserMessage?.content?.content
 		if (!userMessage) return { messages, systemMessages }
 
 		const queryResult = await retrieveSubtitles(videoId, userMessage)
-		if (queryResult.length === 0) return { messages, systemMessages }
+		if (queryResult.length === 0) {
+			return { messages, systemMessages }
+		}
 
 		const chunkTexts = queryResult.map(
 			(result: QueryResult): string => result?.metadata?.text
 		)
 
-		const content = `
+		const message: CoreMessage = {
+			role: "system",
+			content: `
 [KB_CONTEXT_START]
 ${chunkTexts.join("\n\n")}
 [KB_CONTEXT_END]
-		`
-
-		const message: CoreMessage = { role: "system", content }
+`,
+		}
 
 		return {
 			messages,

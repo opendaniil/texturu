@@ -39,6 +39,7 @@
 		"ai": "6.0.91",
 		"axios": "^1.13.5",
 		"bullmq": "^5.67.2",
+		"cookie-parser": "^1.4.7",
 		"joi": "^18.0.2",
 		"kysely": "^0.28.11",
 		"kysely-ctl": "^0.20.0",
@@ -47,6 +48,7 @@
 		"reflect-metadata": "^0.2.2",
 		"rxjs": "^7.8.1",
 		"subtitle": "^4.2.2",
+		"uuid": "^13.0.0",
 		"ytdlp-nodejs": "^3.4.4",
 		"zod": "^4.3.6"
 	},

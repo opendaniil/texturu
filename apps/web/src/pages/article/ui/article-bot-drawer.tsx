@@ -56,8 +56,15 @@ const getMessageText = (message: UIMessage): string => {
 	return ""
 }
 
-export function ArticleBotDrawer() {
-	const transport = useMemo(() => new JsonChatTransportAdapter(), [])
+type ArticleBotDrawerProps = {
+	articleId: string
+}
+
+export function ArticleBotDrawer({ articleId }: ArticleBotDrawerProps) {
+	const transport = useMemo(
+		() => new JsonChatTransportAdapter(articleId),
+		[articleId]
+	)
 
 	const { messages, sendMessage, status, stop, error } = useChat({
 		transport,

@@ -133,7 +133,7 @@ export async function ArticlePage({ params }: PageProps) {
 				</div>
 			</section>
 
-			<ArticleBotDrawer />
+			<ArticleBotDrawer articleId={slug} />
 		</main>
 	)
 }

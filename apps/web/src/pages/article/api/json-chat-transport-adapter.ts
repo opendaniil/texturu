@@ -44,6 +44,8 @@ const toUiMessageStream = (text: string): ReadableStream<UIMessageChunk> => {
 }
 
 export class JsonChatTransportAdapter implements ChatTransport<UIMessage> {
+	constructor(private readonly articleId: string) {}
+
 	async sendMessages(
 		options: Parameters<ChatTransport<UIMessage>["sendMessages"]>[0]
 	): Promise<ReadableStream<UIMessageChunk>> {
@@ -53,6 +55,7 @@ export class JsonChatTransportAdapter implements ChatTransport<UIMessage> {
 		}
 
 		const response = await sendChatMessage({
+			articleId: this.articleId,
 			message,
 			signal: options.abortSignal,
 		})

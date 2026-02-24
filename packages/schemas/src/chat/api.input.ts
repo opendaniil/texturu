@@ -1,6 +1,10 @@
 import { z } from "zod"
+import { videoSchema } from "../video/domain.js"
 
 export const chatRequestSchema = z.object({
+	articleId: videoSchema.shape.id.describe(
+		"Article id for chat context (same as video id)"
+	),
 	message: z
 		.string()
 		.trim()

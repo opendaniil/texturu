@@ -1,8 +1,8 @@
 "use client"
 import Link from "next/link"
-import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/shared/ui/button"
+import { container } from "@/shared/ui/container"
 
 interface LinkItem {
 	href: string
@@ -16,16 +16,24 @@ interface FooterProps {
 	barCount?: number
 }
 
-const Footer: React.FC<FooterProps> = ({
+export default function Footer({
 	leftLinks,
 	rightLinks,
 	copyrightText,
 	barCount = 23,
-}) => {
+}: FooterProps) {
 	const waveRefs = useRef<(HTMLDivElement | null)[]>([])
-	const footerRef = useRef<HTMLDivElement | null>(null)
+	const footerRef = useRef<HTMLElement | null>(null)
 	const [isVisible, setIsVisible] = useState(false)
 	const animationFrameRef = useRef<number | null>(null)
+	const waveBars = useMemo(
+		() =>
+			Array.from({ length: barCount }, (_, index) => ({
+				id: `bar-${index + 1}`,
+				height: index + 1,
+			})),
+		[barCount]
+	)
 
 	useEffect(() => {
 		const observer = new IntersectionObserver(
@@ -36,15 +44,13 @@ const Footer: React.FC<FooterProps> = ({
 			{ threshold: 0.2 }
 		)
 
-		if (footerRef.current) {
-			observer.observe(footerRef.current)
+		const footerElement = footerRef.current
+
+		if (footerElement) {
+			observer.observe(footerElement)
 		}
 
-		return () => {
-			if (footerRef.current) {
-				observer.unobserve(footerRef.current)
-			}
-		}
+		return () => observer.disconnect()
 	}, [])
 
 	useEffect(() => {
@@ -83,70 +89,59 @@ const Footer: React.FC<FooterProps> = ({
 	return (
 		<footer
 			ref={footerRef}
-			className="bg-black text-white relative flex flex-col w-full h-full justify-between select-none"
+			className="relative flex h-full w-full flex-col justify-between bg-black text-white select-none"
 		>
-			<div className="container mx-auto flex flex-col md:flex-row justify-between w-full gap-4 pb-24 pt-8 px-4">
-				<div className="space-y-2">
-					<ul className="flex flex-wrap gap-4">
-						{leftLinks.map((link) => (
-							<li key={link.label}>
-								<Link href={link.href} className="text-sm hover:text-sky-400">
-									{link.label}
-								</Link>
-							</li>
-						))}
-					</ul>
-					<p className="text-sm mt-4 flex items-center gap-x-1">
-						{copyrightText}
-					</p>
-				</div>
-				<div className="space-y-4">
-					<ul className="flex flex-wrap gap-4">
-						{rightLinks.map((link) => (
-							<li key={link.label}>
-								<Link href={link.href} className="text-sm hover:text-sky-400">
-									{link.label}
-								</Link>
-							</li>
-						))}
-					</ul>
-					<div className="text-right mt-4">
-						<Button
-							className="text-sm hover:underline inline-flex items-center"
-							onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-						>
-							Наверх
-						</Button>
+			<section className="py-8">
+				<div
+					className={`${container.narrow} flex w-full flex-col justify-between gap-4 md:flex-row`}
+				>
+					<div className="space-y-2">
+						<ul className="flex flex-wrap gap-4">
+							{leftLinks.map((link) => (
+								<li key={link.label}>
+									<Link href={link.href} className="text-sm hover:text-sky-400">
+										{link.label}
+									</Link>
+								</li>
+							))}
+						</ul>
+						<p className="mt-4 flex items-center gap-x-1 text-sm">
+							{copyrightText}
+						</p>
+					</div>
+					<div className="space-y-4">
+						<ul className="flex flex-wrap gap-4">
+							{rightLinks.map((link) => (
+								<li key={link.label}>
+									<Link href={link.href} className="text-sm hover:text-sky-400">
+										{link.label}
+									</Link>
+								</li>
+							))}
+						</ul>
+						<div className="mt-4 text-right">
+							<Button
+								className="inline-flex items-center text-sm hover:underline"
+								onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+							>
+								Наверх
+							</Button>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div
-				id="waveContainer"
-				aria-hidden="true"
-				style={{ overflow: "hidden", height: 200 }}
-			>
-				<div style={{ marginTop: 0 }}>
-					{Array.from({ length: barCount }).map((_, index) => (
-						<div
-							// biome-ignore lint/suspicious/noArrayIndexKey: default
-							key={index}
-							ref={(el) => {
-								waveRefs.current[index] = el
-							}}
-							className="wave-segment"
-							style={{
-								height: `${index + 1}px`,
-								backgroundColor: "rgb(255, 255, 255)",
-								transition: "transform 0.1s ease",
-								willChange: "transform",
-								marginTop: "-2px",
-							}}
-						/>
-					))}
-				</div>
+			</section>
+			<div aria-hidden="true" className="h-[200px] overflow-hidden">
+				{waveBars.map((bar, index) => (
+					<div
+						key={bar.id}
+						ref={(el) => {
+							waveRefs.current[index] = el
+						}}
+						className="-mt-0.5 bg-white transition-transform duration-100 ease-in [will-change:transform]"
+						style={{ height: `${bar.height}px` }}
+					/>
+				))}
 			</div>
 		</footer>
 	)
 }
-
-export default Footer

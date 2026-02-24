@@ -1,4 +1,5 @@
 import { NestFactory } from "@nestjs/core"
+import cookieParser from "cookie-parser"
 import { AppModule } from "./app.module"
 import { AppConfigService } from "./infra/app-config/app-config.service"
 import { enableCors } from "./infra/cors/cors"
@@ -7,6 +8,8 @@ import { createSwagger } from "./infra/swagger/swagger"
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule)
 	app.setGlobalPrefix("api")
+
+	app.use(cookieParser())
 
 	const config = app.get(AppConfigService)
 	console.log("[NODE_ENV]", config.get("NODE_ENV"))

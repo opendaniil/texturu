@@ -22,6 +22,7 @@ export async function sendChatMessage({
 			Accept: "application/json",
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify(payload),
 		cache: "no-store",
 		signal,
