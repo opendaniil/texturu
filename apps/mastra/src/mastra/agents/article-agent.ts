@@ -1,4 +1,5 @@
 import { Agent } from "@mastra/core/agent"
+import { TokenLimiterProcessor } from "@mastra/core/processors"
 import { Memory } from "@mastra/memory"
 import { chatRequestContextSchema } from "@tubebook/schemas"
 import { gptOss120 } from "../models/gpt-oss-120b"
@@ -32,7 +33,10 @@ export const articleAgent = new Agent({
 		},
 	}),
 
-	inputProcessors: [injectRequestContext],
+	inputProcessors: [
+		new TokenLimiterProcessor({ limit: 16_000 }),
+		injectRequestContext,
+	],
 	instructions: async ({ requestContext }) => {
 		const articleTitle = getContextText(
 			requestContext?.get("articleTitle"),
