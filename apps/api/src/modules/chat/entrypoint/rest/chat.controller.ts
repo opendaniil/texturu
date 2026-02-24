@@ -2,19 +2,16 @@ import {
 	BadGatewayException,
 	Body,
 	Controller,
-	HttpCode,
-	HttpStatus,
 	Post,
 	Req,
 	Res,
 } from "@nestjs/common"
-import { ApiOkResponse } from "@nestjs/swagger"
+import { pipeUIMessageStreamToResponse } from "ai"
 import type { Request, Response } from "express"
 import { createUuidV7, isUuidV7 } from "src/common/id/uuidv7"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
 import { ChatService } from "../../application/chat.service"
 import { ChatRequestDto } from "./dto/chat-request.dto"
-import { ChatResponseDto } from "./dto/chat-response.dto"
 
 type RequestWithCookies = Request & {
 	cookies?: Record<string, unknown>
@@ -27,23 +24,26 @@ export class ChatController {
 		private readonly config: AppConfigService
 	) {}
 
-	@Post()
-	@HttpCode(HttpStatus.OK)
-	@ApiOkResponse({ type: ChatResponseDto })
-	reply(
+	@Post("stream")
+	async stream(
 		@Body() dto: ChatRequestDto,
 		@Req() req: RequestWithCookies,
-		@Res({ passthrough: true }) res: Response
-	) {
+		@Res() res: Response
+	): Promise<void> {
 		const anonId = this.resolveAnonId(req, res)
 
 		try {
-			return this.chatService.generateResponse({
+			const stream = await this.chatService.streamResponse({
 				...dto,
 				anonId,
 			})
+
+			pipeUIMessageStreamToResponse({
+				response: res,
+				stream,
+			})
 		} catch {
-			throw new BadGatewayException("Failed to get response from articleAgent")
+			throw new BadGatewayException("Failed to stream response from agent")
 		}
 	}
 

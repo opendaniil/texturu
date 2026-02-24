@@ -1,7 +1,6 @@
 export * from "./article-workflow/api.input"
 export * from "./article-workflow/api.output"
 export * from "./chat/api.input"
-export * from "./chat/api.output"
 export * from "./chat/request-context"
 export * from "./error/api"
 export * from "./video/api"

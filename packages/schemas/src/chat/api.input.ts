@@ -9,7 +9,7 @@ export const chatRequestSchema = z.object({
 		.string()
 		.trim()
 		.min(1)
-		.max(4000)
+		.max(400)
 		.describe("User message to articleAgent"),
 })
 export type ChatRequest = z.infer<typeof chatRequestSchema>
