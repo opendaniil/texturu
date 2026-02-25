@@ -86,39 +86,50 @@ export function BotChat({ articleId }: BotChatProps) {
 			<div className="flex min-h-0 flex-1 flex-col">
 				<Conversation>
 					<ConversationContent className="gap-4">
-						{messages.length === 0 ? (
+						{messages.length === 0 && (
 							<ConversationEmptyState
 								title="Чат пуст"
 								description="Задайте вопрос по статье, и я начну диалог."
 							/>
-						) : (
+						)}
+
+						{messages.length !== 0 &&
 							messages.map((message) => (
 								<Message key={message.id} from={message.role}>
 									<MessageContent>
-										{message.role === "assistant" ? (
+										{message.role === "assistant" && (
 											<MessageResponse>
 												{message.parts
 													.filter(isTextUIPart)
 													.map((part) => part.text)
-													.join("") || "Думаю..."}
+													.join("")}
 											</MessageResponse>
-										) : (
+										)}
+
+										{message.role === "user" &&
 											message.parts
 												.filter(isTextUIPart)
 												.map((part) => part.text)
-												.join("")
-										)}
+												.join("")}
 									</MessageContent>
 								</Message>
-							))
+							))}
+
+						{messages.length !== 0 && isSending && (
+							<Message from={"assistant"}>
+								<MessageContent>
+									<MessageResponse>Загрузка...</MessageResponse>
+								</MessageContent>
+							</Message>
 						)}
 					</ConversationContent>
 					<ConversationScrollButton />
 				</Conversation>
+
 				{error && (
 					<div className="px-4 pb-2 text-sm text-destructive">
-						Не удалось получить ответ ассистента. Попробуйте отправить
-						сообщение снова.
+						Не удалось получить ответ ассистента. Попробуйте отправить сообщение
+						снова.
 					</div>
 				)}
 			</div>

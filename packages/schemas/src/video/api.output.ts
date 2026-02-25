@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { videoArticleApiSchema } from "../video-article/api.js"
 import { videoInfoApiSchema } from "../video-info/api.js"
 import { videoApiSchema } from "./api.js"
 
@@ -14,6 +15,7 @@ export const videoStatusResponseSchema = videoApiSchema
 	.omit({ createdAt: true })
 	.extend({
 		isFinal: z.boolean(),
+		articleSlug: videoArticleApiSchema.shape.slug.nullable(),
 	})
 export type VideoStatusResponse = z.infer<typeof videoStatusResponseSchema>
 

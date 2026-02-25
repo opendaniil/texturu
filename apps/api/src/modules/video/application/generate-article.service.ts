@@ -1,4 +1,7 @@
+import { randomBytes } from "node:crypto"
 import { Injectable } from "@nestjs/common"
+import slugify from "@sindresorhus/slugify"
+import { format } from "date-fns"
 import { UowService } from "src/infra/database/unit-of-work.service"
 import { VideoRepo } from "../data/video.repo"
 import { VideoArticleRepo } from "../data/video-article.repo"
@@ -33,15 +36,17 @@ export class GenerateArticleService {
 			plainText
 		)
 		await this.uow.run(async (trx) => {
-			await this.videoArticleRepo.upsertByVideoId(
+			await this.videoArticleRepo.create(
 				{
 					videoId,
 					title: articleData.title,
 					description: articleData.description,
 					article: articleData.article,
+					slug: this.createSlug(articleData.title),
 				},
 				trx
 			)
+
 			await this.videoRepo.updateStatus(
 				videoId,
 				{
@@ -51,6 +56,34 @@ export class GenerateArticleService {
 				trx
 			)
 		})
+	}
+
+	private createSlug(title: string): string {
+		let titleSlug = slugify(title, {
+			separator: "-",
+			lowercase: true,
+			decamelize: true,
+			transliterate: true,
+			locale: "ru",
+		})
+
+		const maxLen = 256
+		if (titleSlug.length > maxLen) {
+			const cut = titleSlug
+				.split("-")
+				.filter(Boolean)
+				.reduce((acc, word) => {
+					const candidate = acc ? `${acc}-${word}` : word
+					return candidate.length <= maxLen ? candidate : acc
+				}, "")
+
+			titleSlug = cut || titleSlug.slice(0, maxLen)
+		}
+
+		const datePart = format(new Date(), "yyyyMMdd")
+		const randomPart = randomBytes(3).toString("hex")
+
+		return `${randomPart}-${titleSlug}-${datePart}`
 	}
 
 	async markFailed(videoId: string, message: string) {

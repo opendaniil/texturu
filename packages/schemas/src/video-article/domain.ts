@@ -5,6 +5,7 @@ export const videoArticleSchema = z.object({
 	id: z.uuidv7(),
 
 	videoId: videoSchema.shape.id,
+	slug: z.string().trim().min(1),
 	title: z.string(),
 	description: z.string(),
 	article: z.string(),

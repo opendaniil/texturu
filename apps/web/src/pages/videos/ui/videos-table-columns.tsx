@@ -130,10 +130,9 @@ export const videosTableColumns: ColumnDef<VideoResponse>[] = [
 
 			if (!isReady) return "—"
 
-			const articleId = row.original.id
 			return (
 				<Link
-					href={`/article/${articleId}`}
+					href={`/status/${row.original.id}`}
 					className="underline underline-offset-2"
 				>
 					Открыть

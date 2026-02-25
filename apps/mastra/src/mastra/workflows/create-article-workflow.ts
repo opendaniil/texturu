@@ -21,7 +21,12 @@ const createArticle = createStep({
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: articleWorkflowOutputSchema,
 	execute: async ({ inputData, mastra }) => {
-		const { subtitles } = inputData
+		let subtitles = inputData.subtitles
+
+		const lenLimit = 10000
+		if (subtitles.length > lenLimit) {
+			subtitles = subtitles.slice(0, lenLimit)
+		}
 
 		const agent = mastra?.getAgent("createArticleAgent")
 		if (!agent) {

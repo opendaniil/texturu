@@ -35,7 +35,7 @@ export async function ArticlePage({ params }: PageProps) {
 
 	if (!article) return notFound()
 
-	const { title, description, createdAt, info, externalId } = article
+	const { id, title, description, createdAt, info, externalId } = article
 
 	const authorName = info.channelTitle
 	const authorLink = `https://www.youtube.com/channel/${info.channelId}`
@@ -133,7 +133,7 @@ export async function ArticlePage({ params }: PageProps) {
 				</div>
 			</section>
 
-			<ArticleBotDrawer articleId={slug} />
+			<ArticleBotDrawer articleId={id} />
 		</main>
 	)
 }

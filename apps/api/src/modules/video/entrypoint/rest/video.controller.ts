@@ -18,6 +18,7 @@ import { LatestVideoArticlesResponseDto } from "./dto/latest-video-articles-resp
 import { ListVideosQueryDto } from "./dto/list-videos-query.dto"
 import { ListVideosResponseDto } from "./dto/list-videos-response.dto"
 import { VideoArticleResponseDto } from "./dto/video-article-response.dto"
+import { VideoArticleSlugDto } from "./dto/video-article-slug.dto"
 import { VideoIdDto } from "./dto/video-id.dto"
 import { VideoResponseDto } from "./dto/video-response.dto"
 import { VideoStatusResponseDto } from "./dto/video-status-response.dto"
@@ -56,10 +57,10 @@ export class VideoController {
 		return result
 	}
 
-	@Get(":id/article")
+	@Get("articles/:slug")
 	@ApiOkResponse({ type: VideoArticleResponseDto })
-	async getArticle(@Param() { id }: VideoIdDto) {
-		const result = await this.videoService.getArticle(id)
+	async getArticle(@Param() { slug }: VideoArticleSlugDto) {
+		const result = await this.videoService.getArticleBySlug(slug)
 		if (!result) {
 			throw new NotFoundException()
 		}

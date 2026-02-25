@@ -36,9 +36,9 @@ export function LatestArticles() {
 	}
 
 	const marqueeItems = isPending
-		? Array.from({ length: 5 }, (_, index) => ({
-				videoId: `loading-${index}`,
-				title: "Загружаем последние статьи...",
+		? Array.from({ length: 5 }, () => ({
+				slug: "#",
+				title: "...",
 			}))
 		: items
 
@@ -46,9 +46,9 @@ export function LatestArticles() {
 		<Marquee aria-label="Marquee" pauseOnHover pauseOnKeyboard>
 			<MarqueeContent>
 				{marqueeItems.map((item) => (
-					<MarqueeItem key={item.videoId} asChild>
+					<MarqueeItem key={item.slug} asChild>
 						<Link
-							href={isPending ? "#" : `/article/${item.videoId}`}
+							href={isPending ? "#" : `/article/${item.slug}`}
 							aria-disabled={isPending}
 							className="flex w-[260px] flex-col gap-1 rounded-md border bg-card p-4 text-card-foreground shadow-sm aria-disabled:pointer-events-none"
 						>

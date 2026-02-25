@@ -4,7 +4,7 @@ import { videoInfoApiSchema } from "../video-info/api"
 import { videoArticleApiSchema } from "./api"
 
 export const latestVideoArticleSchema = videoArticleApiSchema.pick({
-	videoId: true,
+	slug: true,
 	title: true,
 })
 export type LatestVideoArticle = z.infer<typeof latestVideoArticleSchema>

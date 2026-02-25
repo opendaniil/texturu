@@ -75,6 +75,10 @@ export class VideoService {
 		const { id, source, externalId, status, statusMessage, updatedAt } = video
 
 		const isFinal = ["done", "error"].includes(status)
+		const articleSlug =
+			status === "done"
+				? ((await this.videoArticleRepo.findByVideoId(videoId))?.slug ?? null)
+				: null
 
 		return {
 			id,
@@ -84,6 +88,7 @@ export class VideoService {
 			statusMessage,
 			isFinal,
 			updatedAt,
+			articleSlug,
 		}
 	}
 
@@ -128,14 +133,19 @@ export class VideoService {
 		}
 	}
 
-	async getArticle(videoId: string) {
-		const [article, info, video] = await Promise.all([
-			this.videoArticleRepo.findByVideoId(videoId),
-			this.videoInfoRepo.findByVideoId(videoId),
-			this.videoRepo.findById(videoId),
+	async getArticleBySlug(slug: string) {
+		const article = await this.videoArticleRepo.findBySlug(slug)
+
+		if (!article) {
+			return null
+		}
+
+		const [info, video] = await Promise.all([
+			this.videoInfoRepo.findByVideoId(article.videoId),
+			this.videoRepo.findById(article.videoId),
 		])
 
-		if (!article || !info || !video) {
+		if (!info || !video) {
 			return null
 		}
 

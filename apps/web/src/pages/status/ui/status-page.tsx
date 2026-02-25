@@ -17,14 +17,16 @@ export default function StatusPage({ slug }: { slug: string }) {
 	const router = useRouter()
 	const { data, isError: isBackendError, error } = useVideoStatusPoll(slug)
 
-	useEffect(() => {
-		if (data?.status === "done") {
-			router.replace(`/article/${data.id}`)
-		}
-	}, [data?.id, data?.status, router])
-
-	const isDone = data?.status === "done"
 	const isProcessError = data?.status === "error"
+	const isShowStepper = !isBackendError && !isProcessError && data
+
+	const articleHref =
+		data?.status === "done" ? `/article/${data.articleSlug}` : null
+	useEffect(() => {
+		if (articleHref) {
+			router.replace(articleHref)
+		}
+	}, [articleHref, router])
 
 	return (
 		<main className="">
@@ -37,7 +39,7 @@ export default function StatusPage({ slug }: { slug: string }) {
 
 						{isBackendError && <StatusError message={error.message} />}
 
-						{data && !(isProcessError || isBackendError) && (
+						{isShowStepper && (
 							<StatusStepper
 								status={data.status}
 								statusMessage={data.statusMessage}
@@ -45,11 +47,8 @@ export default function StatusPage({ slug }: { slug: string }) {
 						)}
 					</div>
 
-					{isDone && (
-						<Button
-							onClick={() => router.push(`/article/${data.id}`)}
-							className="w-full"
-						>
+					{articleHref && (
+						<Button onClick={() => router.push(articleHref)} className="w-full">
 							Перейти к статье
 						</Button>
 					)}

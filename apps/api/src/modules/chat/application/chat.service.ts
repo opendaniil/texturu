@@ -2,7 +2,7 @@ import { toAISdkStream } from "@mastra/ai-sdk"
 import { MastraClient } from "@mastra/client-js"
 import { RequestContext } from "@mastra/core/request-context"
 import type { ChunkType, MastraModelOutput } from "@mastra/core/stream"
-import { BadGatewayException, Injectable } from "@nestjs/common"
+import { Injectable } from "@nestjs/common"
 import { type ChatRequest, type ChatRequestContext } from "@tubebook/schemas"
 import type { UIMessageChunk } from "ai"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
@@ -92,12 +92,13 @@ export class ChatService {
 	}
 
 	private async getContext(articleId: string): Promise<RequestContext | null> {
-		const [article, info] = await Promise.all([
-			this.videoArticleRepo.findByVideoId(articleId),
-			this.videoInfoRepo.findByVideoId(articleId),
-		])
+		const article = await this.videoArticleRepo.findById(articleId)
+		if (!article) {
+			return null
+		}
 
-		if (!article || !info) {
+		const info = await this.videoInfoRepo.findByVideoId(article.videoId)
+		if (!info) {
 			return null
 		}
 

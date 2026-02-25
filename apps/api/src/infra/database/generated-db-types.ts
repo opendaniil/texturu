@@ -214,6 +214,7 @@ export interface VideoArticles {
   createdAt: Generated<Timestamp>;
   description: string;
   id: Generated<string>;
+  slug: string | null;
   title: string;
   updatedAt: Generated<Timestamp>;
   videoId: string;
