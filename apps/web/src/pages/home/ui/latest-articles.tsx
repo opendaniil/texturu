@@ -8,6 +8,7 @@ import {
 	MarqueeEdge,
 	MarqueeItem,
 } from "@/shared/ui/marquee"
+import { Skeleton } from "@/shared/ui/skeleton"
 import { getLatestArticles } from "../api/get-latest-articles"
 
 export function LatestArticles() {
@@ -26,6 +27,7 @@ export function LatestArticles() {
 	}
 
 	const items = data?.items ?? []
+	const skeletonItems = Array.from({ length: 5 }, (_, index) => index)
 
 	if (!isPending && items.length === 0) {
 		return (
@@ -35,22 +37,27 @@ export function LatestArticles() {
 		)
 	}
 
-	const marqueeItems = isPending
-		? Array.from({ length: 5 }, () => ({
-				slug: "#",
-				title: "...",
-			}))
-		: items
-
 	return (
 		<Marquee aria-label="Marquee" pauseOnHover pauseOnKeyboard>
 			<MarqueeContent>
-				{marqueeItems.map((item) => (
+				{isPending &&
+					skeletonItems.map((index) => (
+						<MarqueeItem key={index}>
+							<div
+								aria-hidden="true"
+								className="pb-12 flex w-[260px] flex-col gap-2 rounded-md border bg-card p-4 text-card-foreground shadow-sm"
+							>
+								<Skeleton className="h-4 w-full" />
+								<Skeleton className="h-4 w-2/3" />
+							</div>
+						</MarqueeItem>
+					))}
+
+				{items.map((item) => (
 					<MarqueeItem key={item.slug} asChild>
 						<Link
-							href={isPending ? "#" : `/article/${item.slug}`}
-							aria-disabled={isPending}
-							className="flex w-[260px] flex-col gap-1 rounded-md border bg-card p-4 text-card-foreground shadow-sm aria-disabled:pointer-events-none"
+							href={`/article/${item.slug}`}
+							className="flex w-[260px] flex-col gap-1 rounded-md border bg-card p-4 text-card-foreground shadow-sm"
 						>
 							<div className="text-sm leading-tight sm:text-base">
 								{item.title}

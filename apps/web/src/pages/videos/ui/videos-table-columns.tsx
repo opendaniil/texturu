@@ -27,7 +27,9 @@ const statusBadgeVariantByStatus: Record<
 	"default" | "secondary" | "outline" | "destructive"
 > = {
 	done: "default",
-	processing: "secondary",
+	generating_article: "secondary",
+	fetching_captions: "secondary",
+	fetching_info: "secondary",
 	queued: "outline",
 	error: "destructive",
 }

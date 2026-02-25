@@ -74,7 +74,7 @@ test("videos table url", async (t) => {
 			pageSize: "10",
 			sortBy: "status",
 			sortDir: "asc",
-			status: "processing",
+			status: "fetching_captions",
 			q: "  queue  ",
 		})
 		const roundtrip = parseVideosUrlSearchParams(

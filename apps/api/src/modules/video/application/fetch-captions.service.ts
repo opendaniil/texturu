@@ -28,7 +28,7 @@ export class FetchCaptionsService {
 
 	async process({ videoId, externalId }: FetchCaptionsJobData) {
 		await this.videoRepo.updateStatus(videoId, {
-			status: "processing",
+			status: "fetching_captions",
 			statusMessage: "Получение субтитров",
 		})
 

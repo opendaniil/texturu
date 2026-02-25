@@ -1,4 +1,7 @@
-import type { VideoStatusResponse } from "@tubebook/schemas"
+import {
+	type VideoStatusResponse,
+	videoStatusProgressOrder,
+} from "@tubebook/schemas"
 import { Spinner } from "@/shared/ui/spinner"
 import {
 	Stepper,
@@ -10,9 +13,7 @@ import {
 	StepperTrigger,
 } from "@/shared/ui/stepper"
 
-type StepValue = Exclude<VideoStatusResponse["status"], "error">
-
-const steps = ["queued", "processing", "done"] as StepValue[]
+const steps = videoStatusProgressOrder
 
 type StatusStepperProps = {
 	status: VideoStatusResponse["status"]
@@ -23,7 +24,7 @@ export function StatusStepper({ status, statusMessage }: StatusStepperProps) {
 	const isDone = status === "done"
 
 	return (
-		<Stepper nonInteractive value={status} className="w-full max-w-md">
+		<Stepper nonInteractive value={status} className="w-full max-w-xl">
 			<StepperList>
 				{steps.map((step) => (
 					<StepperItem key={step} value={step}>
@@ -42,7 +43,6 @@ export function StatusStepper({ status, statusMessage }: StatusStepperProps) {
 					value={step}
 					className="flex flex-col items-center gap-4 rounded-md border bg-card p-4 text-card-foreground"
 				>
-					<p className="text-sm capitalize">{step}</p>
 					<p className="text-sm">{statusMessage}</p>
 
 					{!isDone && <Spinner className="size-8" />}

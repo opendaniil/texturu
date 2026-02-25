@@ -14,7 +14,7 @@ export function VideosPage({ initialQuery }: VideosPageProps) {
 	return (
 		<main className="container mx-auto">
 			<section className="py-8 sm:py-12">
-				<div className={`${container.default} flex flex-col gap-6`}>
+				<div className={`${container.narrow} flex flex-col gap-6`}>
 					<div className="space-y-2">
 						<h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
 							Все видео

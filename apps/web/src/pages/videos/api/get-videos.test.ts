@@ -65,7 +65,7 @@ test("getVideos API", async (t) => {
 				sortDir: "asc",
 				pageIndex: 2,
 				pageSize: 50,
-				status: "processing",
+				status: "fetching_info",
 				q: "  ai  ",
 			},
 			controller.signal
@@ -79,7 +79,7 @@ test("getVideos API", async (t) => {
 		assert.equal(requestUrl.searchParams.get("pageSize"), "50")
 		assert.equal(requestUrl.searchParams.get("sortBy"), "channelTitle")
 		assert.equal(requestUrl.searchParams.get("sortDir"), "asc")
-		assert.equal(requestUrl.searchParams.get("status"), "processing")
+		assert.equal(requestUrl.searchParams.get("status"), "fetching_info")
 		assert.equal(requestUrl.searchParams.get("q"), "ai")
 		assert.equal(capturedInit?.method, "GET")
 		assert.deepEqual(capturedInit?.headers, { Accept: "application/json" })

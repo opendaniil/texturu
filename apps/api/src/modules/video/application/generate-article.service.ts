@@ -21,7 +21,7 @@ export class GenerateArticleService {
 
 	async process({ videoId }: GenerateArticleJobData) {
 		await this.videoRepo.updateStatus(videoId, {
-			status: "processing",
+			status: "generating_article",
 			statusMessage: "Создание статьи",
 		})
 

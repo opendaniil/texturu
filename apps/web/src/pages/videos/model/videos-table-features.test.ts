@@ -110,7 +110,7 @@ test("videos table features", async (t) => {
 			pageSize: 10,
 			sortBy: "status",
 			sortDir: "asc",
-			status: "processing",
+			status: "fetching_info",
 			q: "queue",
 		})
 

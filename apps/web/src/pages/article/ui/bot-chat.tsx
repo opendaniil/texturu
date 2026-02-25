@@ -23,14 +23,13 @@ import {
 	PromptInputTextarea,
 	PromptInputTools,
 } from "@/shared/components/ai-elements/prompt-input"
+import { Shimmer } from "@/shared/components/ai-elements/shimmer"
 import {
 	DrawerDescription,
 	DrawerFooter,
 	DrawerHeader,
 	DrawerTitle,
 } from "@/shared/ui/drawer"
-
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST
 
 type BotChatProps = {
 	articleId: string
@@ -40,7 +39,7 @@ export function BotChat({ articleId }: BotChatProps) {
 	const transport = useMemo(
 		() =>
 			new DefaultChatTransport({
-				api: `${API_HOST}/api/chat/stream`,
+				api: `${process.env.NEXT_PUBLIC_API_HOST}/api/chat/stream`,
 				credentials: "include",
 				body: {
 					articleId,
@@ -54,6 +53,18 @@ export function BotChat({ articleId }: BotChatProps) {
 	})
 
 	const isSending = status === "submitted" || status === "streaming"
+
+	const getMessageText = (message: (typeof messages)[number]) =>
+		message.parts
+			.filter(isTextUIPart)
+			.map((part) => part.text)
+			.join("")
+
+	const lastMessage = messages[messages.length - 1]
+	const shouldShowLoadingMessage =
+		isSending &&
+		(lastMessage?.role !== "assistant" ||
+			getMessageText(lastMessage).trim().length === 0)
 
 	const handleSubmit = useCallback(
 		async ({ text }: PromptInputMessage) => {
@@ -93,32 +104,22 @@ export function BotChat({ articleId }: BotChatProps) {
 							/>
 						)}
 
-						{messages.length !== 0 &&
-							messages.map((message) => (
-								<Message key={message.id} from={message.role}>
-									<MessageContent>
-										{message.role === "assistant" && (
-											<MessageResponse>
-												{message.parts
-													.filter(isTextUIPart)
-													.map((part) => part.text)
-													.join("")}
-											</MessageResponse>
-										)}
+						{messages.map((message) => (
+							<Message key={message.id} from={message.role}>
+								<MessageContent>
+									{message.role === "assistant" && (
+										<MessageResponse>{getMessageText(message)}</MessageResponse>
+									)}
 
-										{message.role === "user" &&
-											message.parts
-												.filter(isTextUIPart)
-												.map((part) => part.text)
-												.join("")}
-									</MessageContent>
-								</Message>
-							))}
+									{message.role === "user" && getMessageText(message)}
+								</MessageContent>
+							</Message>
+						))}
 
-						{messages.length !== 0 && isSending && (
+						{shouldShowLoadingMessage && (
 							<Message from={"assistant"}>
 								<MessageContent>
-									<MessageResponse>Загрузка...</MessageResponse>
+									<Shimmer>Загрузка...</Shimmer>
 								</MessageContent>
 							</Message>
 						)}
@@ -144,6 +145,7 @@ export function BotChat({ articleId }: BotChatProps) {
 							aria-label="Ваше сообщение"
 						/>
 					</PromptInputBody>
+
 					<PromptInputFooter>
 						<PromptInputTools />
 						<PromptInputSubmit

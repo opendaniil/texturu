@@ -1,8 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
 import type { Video, VideoStatusResponse } from "@tubebook/schemas"
+import { ApiClientError } from "@/shared/lib/api-client"
 import { statusPoll } from "../api/status-poll"
 
 const POOL_INTERVAL = 5_000
+
+function isNotFoundError(error: unknown): boolean {
+	return error instanceof ApiClientError && error.status === 404
+}
 
 export function useVideoStatusPoll(videoId?: Video["id"]) {
 	return useQuery<
@@ -16,13 +21,14 @@ export function useVideoStatusPoll(videoId?: Video["id"]) {
 		queryFn: statusPoll,
 		retry: false,
 		refetchInterval: (query) => {
-			if (query.state.status === "error") return false
-
 			const data = query.state.data
-			if (!data) return 0
 
-			if (data.isFinal !== true) return POOL_INTERVAL
-			return 0
+			if (data?.isFinal === true) return 0
+			if (!data && !query.state.error) return 0
+
+			if (isNotFoundError(query.state.error)) return false
+
+			return POOL_INTERVAL
 		},
 	})
 }

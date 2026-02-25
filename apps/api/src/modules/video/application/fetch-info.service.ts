@@ -23,7 +23,7 @@ export class FetchInfoService {
 
 	async process({ videoId, externalId }: FetchInfoJobData) {
 		await this.videoRepo.updateStatus(videoId, {
-			status: "processing",
+			status: "fetching_info",
 			statusMessage: "Получение информации о видео",
 		})
 

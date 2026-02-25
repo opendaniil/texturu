@@ -1,4 +1,4 @@
-import type { Video } from "@tubebook/schemas"
+import { type Video, videoStatusProgressOrder } from "@tubebook/schemas"
 import { Input } from "@/shared/ui/input"
 import {
 	Select,
@@ -12,10 +12,11 @@ import { Spinner } from "@/shared/ui/spinner"
 const statusOptions: Array<{ label: string; value: "all" | Video["status"] }> =
 	[
 		{ label: "Все статусы", value: "all" },
-		{ label: "В очереди", value: "queued" },
-		{ label: "В процессе", value: "processing" },
-		{ label: "Готово", value: "done" },
-		{ label: "Ошибка", value: "error" },
+		...videoStatusProgressOrder.map((status) => ({
+			label: status,
+			value: status,
+		})),
+		{ label: "error", value: "error" },
 	]
 
 type VideosTableToolbarProps = {

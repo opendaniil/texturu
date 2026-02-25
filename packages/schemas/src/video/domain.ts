@@ -7,12 +7,24 @@ export const videoExternalIdSchema = z
 	.trim()
 	.regex(VIDEO_ID_RE, "Неверный videoId")
 
+export const videoStatusProgressOrder = [
+	"queued",
+	"fetching_info",
+	"fetching_captions",
+	"generating_article",
+	"done",
+] as const
+
+const videoStatusValues = [...videoStatusProgressOrder, "error"] as const
+
+export const videoStatusSchema = z.enum(videoStatusValues)
+
 export const videoSchema = z.object({
 	id: z.uuidv7(),
 
 	source: z.enum(["youtube"]),
 	externalId: videoExternalIdSchema,
-	status: z.enum(["queued", "processing", "done", "error"]),
+	status: videoStatusSchema,
 	statusMessage: z.string(),
 
 	createdAt: z.date(),
