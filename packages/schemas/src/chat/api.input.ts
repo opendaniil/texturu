@@ -11,3 +11,8 @@ export const chatRequestSchema = z.object({
 		.describe("User message to articleAgent"),
 })
 export type ChatRequest = z.infer<typeof chatRequestSchema>
+
+export const chatHistoryQuerySchema = z.object({
+	articleId: videoArticleApiSchema.shape.id,
+})
+export type ChatHistoryQuery = z.infer<typeof chatHistoryQuerySchema>

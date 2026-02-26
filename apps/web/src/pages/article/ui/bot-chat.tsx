@@ -1,8 +1,9 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
+import { useQuery } from "@tanstack/react-query"
 import { DefaultChatTransport, isTextUIPart } from "ai"
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import {
 	Conversation,
 	ConversationContent,
@@ -30,6 +31,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/shared/ui/drawer"
+import { getChatHistory } from "../api/get-chat-history"
 
 type BotChatProps = {
 	articleId: string
@@ -48,9 +50,34 @@ export function BotChat({ articleId }: BotChatProps) {
 		[articleId]
 	)
 
-	const { messages, sendMessage, status, stop, error } = useChat({
+	const { messages, setMessages, sendMessage, status, stop, error } = useChat({
+		id: `article:${articleId}`,
 		transport,
 	})
+
+	const chatHistoryQuery = useQuery({
+		queryKey: ["article-chat-history", articleId],
+		queryFn: ({ signal }) =>
+			getChatHistory(
+				{
+					articleId,
+				},
+				signal
+			),
+		enabled: articleId.trim().length > 0,
+		retry: false,
+		staleTime: Number.POSITIVE_INFINITY,
+	})
+
+	useEffect(() => {
+		const history = chatHistoryQuery.data
+		if (!history) {
+			return
+		}
+
+		// @ts-expect-error ts(2322)
+		setMessages(history.messages)
+	}, [chatHistoryQuery.data, setMessages])
 
 	const isSending = status === "submitted" || status === "streaming"
 
