@@ -1,8 +1,6 @@
 import type { VideoArticleResponse } from "@tubebook/schemas"
 import { ApiClientError, apiClient } from "@/shared/lib/api-client.ts"
 
-export const revalidate = 10
-
 export async function getArticle(
 	slug: string
 ): Promise<VideoArticleResponse | null> {
@@ -13,7 +11,6 @@ export async function getArticle(
 				method: "GET",
 				headers: { Accept: "application/json" },
 				next: {
-					revalidate,
 					tags: [`article:${slug}`],
 				},
 			}
