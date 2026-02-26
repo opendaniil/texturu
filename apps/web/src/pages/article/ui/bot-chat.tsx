@@ -1,9 +1,5 @@
 "use client"
 
-import { useChat } from "@ai-sdk/react"
-import { useQuery } from "@tanstack/react-query"
-import { DefaultChatTransport, isTextUIPart } from "ai"
-import { useCallback, useEffect, useMemo } from "react"
 import {
 	Conversation,
 	ConversationContent,
@@ -19,7 +15,6 @@ import {
 	PromptInput,
 	PromptInputBody,
 	PromptInputFooter,
-	type PromptInputMessage,
 	PromptInputSubmit,
 	PromptInputTextarea,
 	PromptInputTools,
@@ -31,88 +26,23 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/shared/ui/drawer"
-import { getChatHistory } from "../api/get-chat-history"
+import { useArticleBotChat } from "../model/use-article-bot-chat"
 
 type BotChatProps = {
 	articleId: string
 }
 
 export function BotChat({ articleId }: BotChatProps) {
-	const transport = useMemo(
-		() =>
-			new DefaultChatTransport({
-				api: `${process.env.NEXT_PUBLIC_API_HOST}/api/chat/stream`,
-				credentials: "include",
-				body: {
-					articleId,
-				},
-			}),
-		[articleId]
-	)
-
-	const { messages, setMessages, sendMessage, status, stop, error } = useChat({
-		id: `article:${articleId}`,
-		transport,
-	})
-
-	const chatHistoryQuery = useQuery({
-		queryKey: ["article-chat-history", articleId],
-		queryFn: ({ signal }) =>
-			getChatHistory(
-				{
-					articleId,
-				},
-				signal
-			),
-		enabled: articleId.trim().length > 0,
-		retry: false,
-		staleTime: Number.POSITIVE_INFINITY,
-	})
-
-	useEffect(() => {
-		const history = chatHistoryQuery.data
-		if (!history) {
-			return
-		}
-
-		// @ts-expect-error ts(2322)
-		setMessages(history.messages)
-	}, [chatHistoryQuery.data, setMessages])
-
-	const isSending = status === "submitted" || status === "streaming"
-
-	const getMessageText = (message: (typeof messages)[number]) =>
-		message.parts
-			.filter(isTextUIPart)
-			.map((part) => part.text)
-			.join("")
-
-	const lastMessage = messages[messages.length - 1]
-	const shouldShowLoadingMessage =
-		isSending &&
-		(lastMessage?.role !== "assistant" ||
-			getMessageText(lastMessage).trim().length === 0)
-
-	const handleSubmit = useCallback(
-		async ({ text }: PromptInputMessage) => {
-			if (isSending) return
-
-			const userContent = text.trim()
-			if (!userContent) return
-
-			await sendMessage(
-				{
-					text: userContent,
-				},
-				{
-					body: {
-						message: userContent,
-					},
-				}
-			)
-		},
-		[isSending, sendMessage]
-	)
+	const {
+		messages,
+		status,
+		stop,
+		error,
+		isSending,
+		shouldShowLoadingMessage,
+		getMessageText,
+		handleSubmit,
+	} = useArticleBotChat({ articleId })
 
 	return (
 		<>
