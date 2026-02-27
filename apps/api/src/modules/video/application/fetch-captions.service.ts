@@ -5,7 +5,7 @@ import { Writable } from "node:stream"
 import { Injectable } from "@nestjs/common"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
 import { parse } from "subtitle"
-import { YtDlp } from "ytdlp-nodejs"
+import { Exec, YtDlp } from "ytdlp-nodejs"
 import { VideoRepo } from "../data/video.repo"
 import { VideoCaptionRepo } from "../data/video-caption.repo"
 import { type FetchCaptionsJobData } from "./video-jobs.contract"
@@ -48,31 +48,32 @@ export class FetchCaptionsService {
 		const proxy = this.appConfig.get("YOUTUBE_PROXY")
 
 		try {
-			// list-subs не работает, поэтому скачиваем перебором первые доступные
-			const langPriority = ["en-orig", "ru-orig", "en", "ru"]
+			const subtitleInfo = await this.fetchSubtitleInfo(youtubeUrl, proxy)
+			const selected = this.selectBestSubtitleLang(subtitleInfo)
+
+			if (!selected) {
+				throw new Error(`No subtitle tracks found for video ${videoId}`)
+			}
+
 			await this.removeTempSubtitles(videoId)
 
-			let path: string | null = null
-			for (const lang of langPriority) {
-				await this.removeTempSubtitles(videoId)
+			const builder = this.ytdlp
+				.download(youtubeUrl)
+				.proxy(proxy)
+				.setOutputTemplate(`temp/${videoId}/%(id)s.%(ext)s`)
+				.addOption("subFormat", "vtt")
+				.subLangs([selected.lang])
+				.skipDownload()
 
-				await this.ytdlp
-					.download(youtubeUrl)
-					.proxy(proxy)
-					.setOutputTemplate(`temp/${videoId}/%(id)s.%(ext)s`)
-					.addOption("subFormat", "vtt")
-					.writeSubs()
-					.writeAutoSubs()
-					.subLangs([lang])
-					.skipDownload()
-					.run()
-					.catch() // Ошибки yt-dlp игнорируются, они непредсказуемы и не влияют на получение субтитров
-
-				path = await this.getSubtitlePath(videoId)
-				if (path) {
-					break
-				}
+			if (selected.isAuto) {
+				builder.writeAutoSubs()
+			} else {
+				builder.writeSubs()
 			}
+
+			await builder.run().catch() // ошибки yt-dlp игнорируются, они непредсказуемы и не влияют на получение субтитров
+
+			const path = await this.getSubtitlePath(videoId)
 
 			if (!path) {
 				throw new Error(`No .vtt subtitle files found for video ${videoId}`)
@@ -89,6 +90,59 @@ export class FetchCaptionsService {
 		} finally {
 			await this.removeTempSubtitles(videoId)
 		}
+	}
+
+	private async fetchSubtitleInfo(
+		youtubeUrl: string,
+		proxy: string
+	): Promise<{
+		subtitles: Record<string, unknown>
+		autoCaptions: Record<string, unknown>
+	}> {
+		const exec = new Exec(youtubeUrl, {
+			binaryPath: "/usr/bin/yt-dlp",
+		}).addArgs("--dump-single-json", "--skip-download")
+
+		if (proxy) exec.proxy(proxy)
+
+		const result = await exec.exec().catch(() => null)
+
+		if (!result?.stdout) {
+			return { subtitles: {}, autoCaptions: {} }
+		}
+
+		try {
+			const info = JSON.parse(result.stdout) as {
+				subtitles?: Record<string, unknown>
+				automatic_captions?: Record<string, unknown>
+			}
+			return {
+				subtitles: info.subtitles ?? {},
+				autoCaptions: info.automatic_captions ?? {},
+			}
+		} catch {
+			return { subtitles: {}, autoCaptions: {} }
+		}
+	}
+
+	private selectBestSubtitleLang(info: {
+		subtitles: Record<string, unknown>
+		autoCaptions: Record<string, unknown>
+	}): { lang: string; isAuto: boolean } | null {
+		const { subtitles, autoCaptions } = info
+
+		if (subtitles["en"]) return { lang: "en", isAuto: false }
+		if (autoCaptions["en-orig"]) return { lang: "en-orig", isAuto: true }
+		if (subtitles["ru"]) return { lang: "ru", isAuto: false }
+		if (autoCaptions["ru-orig"]) return { lang: "ru-orig", isAuto: true }
+
+		const firstManual = Object.keys(subtitles)[0]
+		if (firstManual) return { lang: firstManual, isAuto: false }
+
+		const origLang = Object.keys(autoCaptions).find((k) => k.endsWith("-orig"))
+		if (origLang) return { lang: origLang, isAuto: true }
+
+		return null
 	}
 
 	private async getSubtitlePath(videoId: string): Promise<string | null> {
