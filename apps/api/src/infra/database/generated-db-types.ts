@@ -213,7 +213,9 @@ export interface VideoArticles {
   article: string;
   createdAt: Generated<Timestamp>;
   description: string;
+  globalSummary: Generated<string>;
   id: Generated<string>;
+  sections: Generated<Json>;
   slug: string | null;
   title: string;
   updatedAt: Generated<Timestamp>;

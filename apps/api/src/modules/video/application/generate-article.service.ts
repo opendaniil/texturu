@@ -41,6 +41,8 @@ export class GenerateArticleService {
 					videoId,
 					title: articleData.title,
 					description: articleData.description,
+					globalSummary: articleData.globalSummary,
+					sections: articleData.sections,
 					article: articleData.article,
 					slug: this.createSlug(articleData.title),
 				},

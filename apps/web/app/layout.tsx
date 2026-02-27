@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 	title: {
-		default: "Главная | TubeBook App",
 		template: "%s | TubeBook App",
+		default: "TubeBook App",
 	},
 	description: "Читать видео вместо просмотра",
 

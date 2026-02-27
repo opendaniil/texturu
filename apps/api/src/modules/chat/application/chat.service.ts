@@ -8,6 +8,7 @@ import {
 	type ChatHistoryResponse,
 	type ChatRequest,
 	type ChatRequestContext,
+	VideoArticleResponse,
 } from "@tubebook/schemas"
 import type { UIMessageChunk } from "ai"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
@@ -131,7 +132,7 @@ export class ChatService {
 					resource: this.getResourceId(anonId),
 				},
 				requestContext,
-				maxSteps: 2,
+				maxSteps: 5,
 			}
 		)
 	}
@@ -158,7 +159,9 @@ export class ChatService {
 		const contextValues: ChatRequestContext = {
 			articleId,
 			articleTitle: article.title,
-			articleShortDescription: article.description,
+			articleDescription: article.description,
+			articleSummary: article.globalSummary,
+			articleSectionsToc: this.buildSectionsToc(article.sections),
 			articleUploadedBy: info.channelTitle,
 			articleUploadedAt: info.uploadDate,
 		}
@@ -166,11 +169,19 @@ export class ChatService {
 		const rc = new RequestContext()
 		rc.set("articleId", contextValues.articleId)
 		rc.set("articleTitle", contextValues.articleTitle)
-		rc.set("articleShortDescription", contextValues.articleShortDescription)
+		rc.set("articleDescription", contextValues.articleDescription)
+		rc.set("articleSummary", contextValues.articleSummary)
+		rc.set("articleSectionsToc", contextValues.articleSectionsToc)
 		rc.set("articleUploadedBy", contextValues.articleUploadedBy)
 		rc.set("articleUploadedAt", contextValues.articleUploadedAt)
 
 		return rc
+	}
+
+	private buildSectionsToc(sections: VideoArticleResponse["sections"]): string {
+		return sections
+			.map((section) => `${section.number}. ${section.title}`)
+			.join("; ")
 	}
 
 	private toUIChunkSource(

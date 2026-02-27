@@ -59,44 +59,20 @@ export class VideoArticleRepo {
 	}
 
 	async create(
-		params: {
-			videoId: string
-			slug: string
-			title: string
-			description: string
-			article: string
-		},
+		params: Omit<VideoArticle, "id" | "createdAt" | "updatedAt">,
 		executor: InjectDb.Client = this.db
 	): Promise<VideoArticle> {
 		const row = await executor
 			.insertInto("videoArticles")
-			.values(params)
-			.returningAll()
-			.executeTakeFirstOrThrow()
-
-		return this.toDomain(row)
-	}
-
-	async updateById(
-		id: string,
-		params: {
-			title: string
-			description: string
-			article: string
-			slug?: string
-		},
-		executor: InjectDb.Client = this.db
-	): Promise<VideoArticle> {
-		const row = await executor
-			.updateTable("videoArticles")
-			.set({
+			.values({
+				videoId: params.videoId,
+				slug: params.slug,
 				title: params.title,
 				description: params.description,
+				globalSummary: params.globalSummary,
+				sections: sql`${JSON.stringify(params.sections)}::jsonb`,
 				article: params.article,
-				...(params.slug !== undefined ? { slug: params.slug } : {}),
-				updatedAt: sql`now()`,
 			})
-			.where("id", "=", id)
 			.returningAll()
 			.executeTakeFirstOrThrow()
 

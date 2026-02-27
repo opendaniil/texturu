@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { articleSectionSchema } from "../article-workflow/api.output.js"
 import { videoSchema } from "../video/domain.js"
 
 export const videoArticleSchema = z.object({
@@ -8,6 +9,8 @@ export const videoArticleSchema = z.object({
 	slug: z.string().trim().min(1),
 	title: z.string(),
 	description: z.string(),
+	globalSummary: z.string(),
+	sections: z.array(articleSectionSchema),
 	article: z.string(),
 
 	createdAt: z.date(),

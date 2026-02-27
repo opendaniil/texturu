@@ -5,21 +5,13 @@ import { chatRequestContextSchema } from "@tubebook/schemas"
 import { gptOss120 } from "../models/gpt-oss-120b"
 import { postgres } from "../store/pg"
 import { injectRequestContext } from "../store/subtitles"
-
-function getContextText(value: unknown, fallback: string): string {
-	if (typeof value !== "string") {
-		return fallback
-	}
-
-	const normalized = value.trim()
-	return normalized.length > 0 ? normalized : fallback
-}
+import { getSectionTool } from "../tools/get-section"
 
 export const articleAgent = new Agent({
 	id: "article-agent",
 	name: "Article Agent",
 	model: gptOss120({ temperature: 0, max_tokens: 300 }, { effort: "low" }),
-	tools: {},
+	tools: { getSection: getSectionTool },
 	requestContextSchema: chatRequestContextSchema,
 	memory: new Memory({
 		storage: postgres,
@@ -38,31 +30,32 @@ export const articleAgent = new Agent({
 		injectRequestContext,
 	],
 	instructions: async ({ requestContext }) => {
-		const articleTitle = getContextText(
-			requestContext?.get("articleTitle"),
-			"null"
-		)
-		const articleShortDescription = getContextText(
-			requestContext?.get("articleShortDescription"),
-			"null"
-		)
-		const articleUploadedBy = getContextText(
-			requestContext?.get("articleUploadedBy"),
-			"null"
-		)
-		const articleUploadedAt = getContextText(
-			requestContext?.get("articleUploadedAt"),
-			"null"
-		)
+		const {
+			articleTitle,
+			articleDescription,
+			articleSummary,
+			articleSectionsToc,
+			articleUploadedBy,
+			articleUploadedAt,
+		} = requestContext.toJSON()
 
 		return `
 Ты помощник по статье.
 Отвечай кратко и лаконично 2-5 предложений.
 
-Используй поля ARTICLE_* и KB_CONTEXT как источник фактов, если ответа там нет — скажи, что ты не знаешь.
+Используй поля ARTICLE_* и KB_CONTEXT как источник фактов.
+
+Правила:
+- На обзорные вопросы опирайся на ARTICLE_SUMMARY.
+- На вопросы по конкретному разделу используй tool getSection c sectionNumber из ARTICLE_TOC.
+- На точечные детали используй KB_CONTEXT.
+- Если ответа в источниках нет, честно скажи, что не нашёл.
 
 ARTICLE_TITLE: ${articleTitle}
-ARTICLE_SHORT_DESCRIPTION: ${articleShortDescription}
+ARTICLE_DESCRIPTION: ${articleDescription}
+ARTICLE_SUMMARY: ${articleSummary}
+ARTICLE_TOC:
+${articleSectionsToc}
 ARTICLE_UPLOADED_BY: ${articleUploadedBy}
 ARTICLE_UPLOADED_AT: ${articleUploadedAt}
 `

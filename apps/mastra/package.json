@@ -30,9 +30,11 @@
 		"@openrouter/ai-sdk-provider": "^2.2.1",
 		"@tubebook/schemas": "workspace:*",
 		"ai": "^6.0.97",
+		"remark": "^15.0.1",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
+		"@types/mdast": "^4.0.4",
 		"@types/node": "^25.1.0",
 		"mastra": "^1.2.0",
 		"typescript": "^5.9.3"

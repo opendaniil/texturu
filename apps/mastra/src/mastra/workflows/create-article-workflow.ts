@@ -6,26 +6,28 @@ import {
 } from "@tubebook/schemas"
 import z from "zod"
 import { ingestSubtitles } from "../store/subtitles"
+import { extractSectionsFromArticle } from "./article-sections.helper"
 
-const articleResultSchema = z.object({
-	title: z.string().describe("цепляющее название, ёмкое и краткое, 5-10 слов"),
-	description: z
-		.string()
-		.describe("подробное описание статьи на 2-4 предложения (60-120 слов)"),
-	article: z.string().describe("статья md"),
+const chunkSummarySchema = z.object({
+	summary: z.string().trim().min(1),
+})
+
+const finalArticleDraftSchema = z.object({
+	title: z.string().trim().min(1),
+	description: z.string().trim().min(1),
+	globalSummary: z.string().trim().min(1),
+	article: z.string().trim().min(1),
 })
 
 const createArticle = createStep({
 	id: "create-article",
-	description: "Generates an article from subtitles",
+	description: "Generates an article from subtitles via chunk summaries",
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: articleWorkflowOutputSchema,
 	execute: async ({ inputData, mastra }) => {
-		let subtitles = inputData.subtitles
-
-		const lenLimit = 10000
-		if (subtitles.length > lenLimit) {
-			subtitles = subtitles.slice(0, lenLimit)
+		const subtitles = inputData.subtitles.trim()
+		if (subtitles.length === 0) {
+			throw new Error("Subtitles are empty")
 		}
 
 		const agent = mastra?.getAgent("createArticleAgent")
@@ -33,30 +35,96 @@ const createArticle = createStep({
 			throw new Error("Article agent not found")
 		}
 
-		const result = await agent.generate(
+		const doc = MDocument.fromText(subtitles)
+		const chunks = await doc.chunk({
+			strategy: "token",
+			maxSize: 16_000,
+			overlap: 500,
+		})
+
+		const chunkTexts = chunks
+			.map((chunk) => chunk.text.trim())
+			.filter((text) => text.length > 0)
+		if (chunkTexts.length === 0) {
+			throw new Error("Chunking produced no non-empty chunks")
+		}
+
+		const mapSummaries = await Promise.all(
+			chunkTexts.map(async (chunkText, index) => {
+				const mapResult = await agent.generate(
+					[
+						{
+							role: "user",
+							content: `
+	Сделай подробное summary чанка субтитров.
+
+	Требования:
+	- Пиши на русском.
+	- Summary должен быть ёмким: сохраняй факты, аргументы, детали и примеры.
+	- Удали шум, повторы и бессмысленные фрагменты.
+	- Сохрани фактический смысл и ход мысли автора.
+
+	CHUNK_INDEX: ${index + 1}
+	SUBTITLES_CHUNK:
+	${chunkText}`,
+						},
+					],
+					{
+						structuredOutput: { schema: chunkSummarySchema },
+					}
+				)
+
+				return mapResult.object.summary
+			})
+		)
+
+		const finalArticleDraft = await agent.generate(
 			[
 				{
 					role: "user",
-					content: `ОБРАБОТАЙ СУБТИТРЫ:
-					${subtitles}`,
+					content: `
+	Создай финальную markdown-статью по summaries чанков и верни структурированный результат.
+
+	Требования:
+	- Язык ответа: русский.
+	- Верни поля: title, description, globalSummary, article.
+	- article должен быть в markdown.
+	- В article используй секции через заголовки H2 (##).
+	- В article не добавляй H1 (#), потому что title хранится отдельно.
+	- Последняя секция в article должна быть "## Вывод".
+	- Текст должен быть живым и интересным, без сухой канцелярщины.
+
+	MAP_SUMMARIES_JSON:
+	${JSON.stringify(mapSummaries)}`,
 				},
 			],
 			{
-				structuredOutput: { schema: articleResultSchema },
+				structuredOutput: { schema: finalArticleDraftSchema },
 			}
 		)
 
+		const {
+			title,
+			description,
+			globalSummary,
+			article: draftArticle,
+		} = finalArticleDraft.object
+		const article = draftArticle.trim()
+		const sections = extractSectionsFromArticle(article)
+
 		return {
-			title: result.object.title.trim(),
-			description: result.object.description.trim(),
-			article: result.object.article.trim(),
+			title: title.trim(),
+			description: description.trim(),
+			globalSummary: globalSummary.trim(),
+			sections,
+			article,
 		}
 	},
 })
 
-const embedArticle = createStep({
-	id: "embed-article",
-	description: "Embeds an subtitle into a markdown file",
+const embedSubtitles = createStep({
+	id: "embed-subtitles",
+	description: "Embeds subtitles into vector index for retrieval",
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: z.void(),
 	execute: async ({ inputData }) => {
@@ -80,7 +148,7 @@ const pickArticle = createStep({
 	id: "pick-article",
 	inputSchema: z.object({
 		"create-article": articleWorkflowOutputSchema,
-		"embed-article": z.void(),
+		"embed-subtitles": z.void(),
 	}),
 	outputSchema: articleWorkflowOutputSchema,
 	execute: async ({ inputData }) => inputData["create-article"],
@@ -91,7 +159,7 @@ const createArticleWorkflow = createWorkflow({
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: articleWorkflowOutputSchema,
 })
-	.parallel([createArticle, embedArticle])
+	.parallel([createArticle, embedSubtitles])
 	.then(pickArticle)
 
 createArticleWorkflow.commit()
