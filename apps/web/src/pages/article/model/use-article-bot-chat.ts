@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import type { ChatHistoryResponse } from "@tubebook/schemas"
+import type { ChatHistoryResponse } from "@texturu/schemas"
 import { DefaultChatTransport, isTextUIPart } from "ai"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { getChatHistory } from "../api/get-chat-history"

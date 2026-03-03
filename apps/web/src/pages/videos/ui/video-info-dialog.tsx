@@ -1,4 +1,4 @@
-import type { VideoResponse } from "@tubebook/schemas"
+import type { VideoResponse } from "@texturu/schemas"
 import type { ReactNode } from "react"
 import {
 	Dialog,

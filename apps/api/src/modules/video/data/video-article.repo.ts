@@ -4,7 +4,7 @@ import {
 	latestVideoArticleSchema,
 	type VideoArticle,
 	videoArticleSchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import { Selectable, sql } from "kysely"
 import { VideoArticles } from "src/infra/database/generated-db-types"
 import { InjectDb } from "src/infra/database/inject.decorator"

@@ -3,7 +3,7 @@ import {
 	listVideosQuerySchema,
 	listVideosSortBySchema,
 	videoSchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import {
 	createLoader,
 	createParser,

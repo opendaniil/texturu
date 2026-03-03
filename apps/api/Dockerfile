@@ -16,7 +16,7 @@ FROM deps AS build
 
 COPY packages/schemas packages/schemas
 COPY apps/api apps/api
-RUN pnpm --filter @tubebook/schemas build && pnpm --filter ./apps/api build
+RUN pnpm --filter @texturu/schemas build && pnpm --filter ./apps/api build
 RUN pnpm deploy --filter ./apps/api --prod /deploy
 
 # ── runner ────────────────────────────────────────────

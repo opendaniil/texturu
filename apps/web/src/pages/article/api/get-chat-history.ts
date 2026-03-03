@@ -2,7 +2,7 @@ import {
 	type ChatHistoryQuery,
 	type ChatHistoryResponse,
 	chatHistoryQuerySchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import { apiClient } from "@/shared/lib/api-client"
 
 export async function getChatHistory(

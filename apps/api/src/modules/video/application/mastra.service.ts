@@ -4,7 +4,7 @@ import {
 	type ArticleWorkflowOutput,
 	articleWorkflowInputSchema,
 	articleWorkflowOutputSchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
 
 @Injectable()

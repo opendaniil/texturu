@@ -3,7 +3,7 @@ import {
 	type ArticleSection,
 	articleSectionSchema,
 	chatRequestContextSchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import z from "zod"
 import { postgres } from "../store/pg"
 

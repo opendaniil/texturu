@@ -1,4 +1,4 @@
-# PRD TubeBook v0.8 — YouTube Article + RAG Chat
+# PRD Texturu v0.8 — YouTube Article + RAG Chat
 ---
 
 ## 1. Цели продукта

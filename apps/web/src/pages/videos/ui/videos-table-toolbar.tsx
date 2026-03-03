@@ -1,4 +1,4 @@
-import { type Video, videoStatusProgressOrder } from "@tubebook/schemas"
+import { type Video, videoStatusProgressOrder } from "@texturu/schemas"
 import { Input } from "@/shared/ui/input"
 import {
 	Select,

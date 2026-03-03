@@ -9,7 +9,7 @@ import {
 	type ChatRequest,
 	type ChatRequestContext,
 	VideoArticleResponse,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import type { UIMessageChunk } from "ai"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
 import { VideoArticleRepo } from "src/modules/video/data/video-article.repo"

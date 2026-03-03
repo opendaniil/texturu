@@ -1,4 +1,4 @@
-import type { VideoArticleResponse } from "@tubebook/schemas"
+import type { VideoArticleResponse } from "@texturu/schemas"
 import { ApiClientError, apiClient } from "@/shared/lib/api-client.ts"
 
 export async function getArticle(

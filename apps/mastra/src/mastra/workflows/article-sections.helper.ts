@@ -1,4 +1,4 @@
-import type { ArticleSection } from "@tubebook/schemas"
+import type { ArticleSection } from "@texturu/schemas"
 import type { Heading, PhrasingContent, Root, RootContent } from "mdast"
 import { remark } from "remark"
 

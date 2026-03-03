@@ -2,7 +2,7 @@ import {
 	type ListVideosQuery,
 	type ListVideosResponse,
 	listVideosQuerySchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import { apiClient } from "@/shared/lib/api-client.ts"
 
 export async function getVideos(

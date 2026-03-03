@@ -1,7 +1,7 @@
 import { Agent } from "@mastra/core/agent"
 import { TokenLimiterProcessor } from "@mastra/core/processors"
 import { Memory } from "@mastra/memory"
-import { chatRequestContextSchema } from "@tubebook/schemas"
+import { chatRequestContextSchema } from "@texturu/schemas"
 import { gptOss120 } from "../models/gpt-oss-120b"
 import { postgres } from "../store/pg"
 import { injectRequestContext } from "../store/subtitles"

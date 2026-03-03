@@ -1,5 +1,5 @@
 import type { Column, ColumnDef } from "@tanstack/react-table"
-import type { Video, VideoResponse } from "@tubebook/schemas"
+import type { Video, VideoResponse } from "@texturu/schemas"
 import { format, parseISO } from "date-fns"
 import { ru } from "date-fns/locale"
 import {

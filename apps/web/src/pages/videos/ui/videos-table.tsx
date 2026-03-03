@@ -5,7 +5,7 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table"
-import type { ListVideosQuery } from "@tubebook/schemas"
+import type { ListVideosQuery } from "@texturu/schemas"
 import { Button } from "@/shared/ui/button"
 import { Spinner } from "@/shared/ui/spinner"
 import {

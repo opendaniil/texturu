@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import type { Video, VideoStatusResponse } from "@tubebook/schemas"
+import type { Video, VideoStatusResponse } from "@texturu/schemas"
 import { ApiClientError } from "@/shared/lib/api-client"
 import { statusPoll } from "../api/status-poll"
 

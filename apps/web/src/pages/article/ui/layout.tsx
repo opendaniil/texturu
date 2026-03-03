@@ -9,7 +9,7 @@ export function ArticleLayout({ children }: { children: React.ReactNode }) {
 			<Footer
 				leftLinks={[{ href: "/", label: "Добавить своё видео" }]}
 				rightLinks={[]}
-				copyrightText={`TubeBook ${new Date().getFullYear()}`}
+				copyrightText={`Texturu ${new Date().getFullYear()}`}
 				barCount={23}
 			/>
 		</>

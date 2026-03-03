@@ -1,4 +1,4 @@
-name: tubebook-prod
+name: texturu-prod
 
 services:
   api:

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { VideoCaption, videoCaptionSchema } from "@tubebook/schemas"
+import { VideoCaption, videoCaptionSchema } from "@texturu/schemas"
 import { Selectable, sql } from "kysely"
 import { VideoCaptions } from "src/infra/database/generated-db-types"
 import { InjectDb } from "src/infra/database/inject.decorator"

@@ -1,4 +1,4 @@
-name: tubebook-dev
+name: texturu-dev
 
 services:
   api:
@@ -103,7 +103,7 @@ services:
       # for local development
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "500"
-    command: "pnpm --filter @tubebook/schemas dev"
+    command: "pnpm --filter @texturu/schemas dev"
     restart: unless-stopped
 
 networks:

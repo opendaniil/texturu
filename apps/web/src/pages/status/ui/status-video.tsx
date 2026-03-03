@@ -1,4 +1,4 @@
-import type { VideoStatusResponse } from "@tubebook/schemas"
+import type { VideoStatusResponse } from "@texturu/schemas"
 
 type StatusVideoProps = {
 	source?: VideoStatusResponse["source"]

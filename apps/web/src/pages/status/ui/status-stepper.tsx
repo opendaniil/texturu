@@ -1,7 +1,7 @@
 import {
 	type VideoStatusResponse,
 	videoStatusProgressOrder,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import { Spinner } from "@/shared/ui/spinner"
 import {
 	Stepper,

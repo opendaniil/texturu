@@ -1,4 +1,4 @@
-# @tubebook/schemas
+# @texturu/schemas
 
 Общие контракты на Zod.
 
@@ -15,5 +15,5 @@
 
 ## Скрипты
 
-* `pnpm --filter @tubebook/schemas run barrels` — пересобрать `src/index.ts`
-* `pnpm --filter @tubebook/schemas run build` — пересобрать barrel и собрать CJS/ESM через `tsup`
+* `pnpm --filter @texturu/schemas run barrels` — пересобрать `src/index.ts`
+* `pnpm --filter @texturu/schemas run build` — пересобрать barrel и собрать CJS/ESM через `tsup`

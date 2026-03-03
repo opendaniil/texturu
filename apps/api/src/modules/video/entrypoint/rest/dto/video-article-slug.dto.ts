@@ -1,4 +1,4 @@
-import { videoArticleApiSchema } from "@tubebook/schemas"
+import { videoArticleApiSchema } from "@texturu/schemas"
 import { createZodDto } from "nestjs-zod"
 import { z } from "zod"
 

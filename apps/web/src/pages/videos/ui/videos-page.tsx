@@ -1,4 +1,4 @@
-import type { ListVideosQuery } from "@tubebook/schemas"
+import type { ListVideosQuery } from "@texturu/schemas"
 import { container } from "@/shared/ui/container"
 import { VideosTable } from "./videos-table"
 

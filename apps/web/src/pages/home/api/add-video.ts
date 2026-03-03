@@ -2,7 +2,7 @@ import {
 	type CreateVideoRequest,
 	type CreateVideoResponse,
 	createVideoRequestSchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import { apiClient } from "@/shared/lib/api-client.ts"
 
 type Params = CreateVideoRequest

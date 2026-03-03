@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 	title: {
-		template: "%s | TubeBook App",
-		default: "TubeBook App",
+		template: "%s | Texturu App",
+		default: "Texturu App",
 	},
 	description: "Читать видео вместо просмотра",
 
@@ -31,9 +31,9 @@ export const metadata: Metadata = {
 		],
 	},
 
-	applicationName: "TubeBook App",
+	applicationName: "Texturu App",
 	openGraph: {
-		siteName: "TubeBook App",
+		siteName: "Texturu App",
 	},
 }
 

@@ -4,7 +4,7 @@ import { cleanupOpenApiDoc } from "nestjs-zod"
 
 export function createSwagger(app: INestApplication) {
 	const config = new DocumentBuilder()
-		.setTitle("TubeBook API")
+		.setTitle("Texturu API")
 		.setDescription("API description")
 		.setVersion("1.0")
 		.build()

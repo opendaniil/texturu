@@ -1,4 +1,4 @@
-import { videoExternalIdSchema } from "@tubebook/schemas"
+import { videoExternalIdSchema } from "@texturu/schemas"
 import { z } from "zod"
 
 const SCHEME_RE = /^[a-z][a-z0-9+.-]*:\/\//i

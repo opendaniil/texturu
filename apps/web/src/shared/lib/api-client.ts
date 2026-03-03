@@ -1,4 +1,4 @@
-import type { HttpExceptionBody } from "@tubebook/schemas"
+import type { HttpExceptionBody } from "@texturu/schemas"
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST
 if (!API_HOST) throw new Error("NEXT_PUBLIC_API_HOST is not set")

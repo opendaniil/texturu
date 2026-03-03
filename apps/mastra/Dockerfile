@@ -16,7 +16,7 @@ FROM deps AS build
 
 COPY packages/schemas packages/schemas
 COPY apps/mastra apps/mastra
-RUN pnpm --filter @tubebook/schemas build && pnpm --filter ./apps/mastra build
+RUN pnpm --filter @texturu/schemas build && pnpm --filter ./apps/mastra build
 
 # ── runner ────────────────────────────────────────────
 FROM node:24-alpine AS runner

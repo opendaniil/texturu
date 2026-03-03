@@ -4,7 +4,7 @@ import {
 	type VideoStatusResponse,
 	videoSchema,
 	videoStatusResponseSchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import { apiClient } from "@/shared/lib/api-client.ts"
 
 const statusPollParamsSchema = videoSchema.pick({ id: true })

@@ -1,4 +1,4 @@
-import { videoSchema } from "@tubebook/schemas"
+import { videoSchema } from "@texturu/schemas"
 import { createZodDto } from "nestjs-zod"
 
 const videoIdParamSchema = videoSchema.pick({ id: true })

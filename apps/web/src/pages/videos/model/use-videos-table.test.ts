@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { listVideosQuerySchema } from "@tubebook/schemas"
+import { listVideosQuerySchema } from "@texturu/schemas"
 import { VIDEOS_TABLE_GLOBAL_FILTER_DEBOUNCE_MS } from "./videos-table-features.ts"
 import {
 	buildNuqsPatchFromQuery,

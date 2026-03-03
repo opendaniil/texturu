@@ -8,7 +8,7 @@ import type {
 	SortingState,
 	Updater,
 } from "@tanstack/react-table"
-import type { ListVideosQuery, Video, VideoResponse } from "@tubebook/schemas"
+import type { ListVideosQuery, Video, VideoResponse } from "@texturu/schemas"
 import { useQueryStates } from "nuqs"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { getVideos } from "../api/get-videos"

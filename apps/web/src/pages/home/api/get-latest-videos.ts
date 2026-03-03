@@ -1,4 +1,4 @@
-import type { ListVideosResponse } from "@tubebook/schemas"
+import type { ListVideosResponse } from "@texturu/schemas"
 import { apiClient } from "@/shared/lib/api-client"
 
 export const revalidate = 30

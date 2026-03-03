@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common"
 import type {
 	LatestVideoArticlesQuery,
 	ListVideosQuery,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import { CacheService } from "src/infra/cache/cache.service"
 import { UowService } from "src/infra/database/unit-of-work.service"
 import { VideoRepo } from "../data/video.repo"

@@ -3,7 +3,7 @@ import { MDocument } from "@mastra/rag"
 import {
 	articleWorkflowInputSchema,
 	articleWorkflowOutputSchema,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 import z from "zod"
 import { ingestSubtitles } from "../store/subtitles"
 import { extractSectionsFromArticle } from "./article-sections.helper"

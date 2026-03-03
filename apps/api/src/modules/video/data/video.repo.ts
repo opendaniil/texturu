@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { type ListVideosQuery, Video, videoSchema } from "@tubebook/schemas"
+import { type ListVideosQuery, Video, videoSchema } from "@texturu/schemas"
 import { Selectable, type StringReference, sql } from "kysely"
 import { Database } from "src/infra/database/database.module"
 import { InjectDb } from "src/infra/database/inject.decorator"

@@ -7,7 +7,7 @@ import type {
 	ListVideosQuery,
 	ListVideosSortBy,
 	Video,
-} from "@tubebook/schemas"
+} from "@texturu/schemas"
 
 export type VideosTableState = {
 	pagination: PaginationState
