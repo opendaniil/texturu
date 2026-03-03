@@ -1,3 +1,8 @@
 node_modules
 **/node_modules
 **/.mastra
+**/dist
+**/.next
+.git
+.gitignore
+docker-compose*.yml

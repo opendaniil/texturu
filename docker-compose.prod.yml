@@ -1,0 +1,83 @@
+name: tubebook-prod
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    ports:
+      - '0.0.0.0:${API_PORT}:3000'
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  mastra:
+    build:
+      context: .
+      dockerfile: ./apps/mastra/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  postgres:
+    image: 'pgvector/pgvector:pg18-trixie'
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    env_file:
+      - .env
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h 127.0.0.1 -p 5432" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    user: postgres
+
+  redis:
+    image: redis:8-alpine
+    volumes:
+      - redis-data:/data
+    networks:
+      - app_network
+    command: >
+      redis-server --appendonly yes --appendfsync everysec --save "" --maxmemory 512mb --maxmemory-policy noeviction
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - '0.0.0.0:${WEB_PORT}:3000'
+    networks:
+      - app_network
+    restart: unless-stopped
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
