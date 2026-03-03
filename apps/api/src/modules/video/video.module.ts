@@ -38,6 +38,6 @@ import { GenerateArticleWorker } from "./entrypoint/workers/generate-article.wor
 		FetchCaptionsWorker,
 		GenerateArticleWorker,
 	],
-	exports: [VideoService],
+	exports: [VideoService, VideoArticleRepo, VideoInfoRepo],
 })
 export class VideoModule {}

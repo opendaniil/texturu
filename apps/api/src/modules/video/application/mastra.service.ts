@@ -9,7 +9,7 @@ import { AppConfigService } from "src/infra/app-config/app-config.service"
 
 @Injectable()
 export class MastraService {
-	client: MastraClient
+	private client: MastraClient
 
 	constructor(private readonly env: AppConfigService) {
 		this.client = new MastraClient({

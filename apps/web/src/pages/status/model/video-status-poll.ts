@@ -3,7 +3,7 @@ import type { Video, VideoStatusResponse } from "@tubebook/schemas"
 import { ApiClientError } from "@/shared/lib/api-client"
 import { statusPoll } from "../api/status-poll"
 
-const POOL_INTERVAL = 5_000
+const POLL_INTERVAL = 5_000
 
 function isNotFoundError(error: unknown): boolean {
 	return error instanceof ApiClientError && error.status === 404
@@ -28,7 +28,7 @@ export function useVideoStatusPoll(videoId?: Video["id"]) {
 
 			if (isNotFoundError(query.state.error)) return false
 
-			return POOL_INTERVAL
+			return POLL_INTERVAL
 		},
 	})
 }
