@@ -43,7 +43,7 @@ export class ChatService {
 		private readonly videoInfoRepo: VideoInfoRepo
 	) {
 		this.client = new MastraClient({
-			baseUrl: this.config.get("MASTRA_HOST"),
+			baseUrl: this.config.mastraBaseUrl,
 		})
 	}
 

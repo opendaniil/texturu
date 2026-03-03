@@ -16,6 +16,8 @@ services:
       - '0.0.0.0:${API_PORT}:3000'
     networks:
       - app_network
+    command: >
+      sh -c "pnpm db:migrate && node dist/src/main"
     restart: unless-stopped
 
   mastra:

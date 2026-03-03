@@ -1,17 +1,37 @@
 import { PgVector, PostgresStore } from "@mastra/pg"
 
-const { DATABASE_URL } = process.env
+function resolvePostgresConnectionString(env: NodeJS.ProcessEnv): string {
+	const missing = [
+		"POSTGRES_USER",
+		"POSTGRES_PASSWORD",
+		"POSTGRES_HOST",
+		"POSTGRES_PORT",
+		"POSTGRES_DB",
+	].filter((key) => !env[key])
 
-if (!DATABASE_URL) {
-	throw new Error("DATABASE_URL is required")
+	if (missing.length > 0) {
+		throw new Error(
+			`POSTGRES_* variables must be set. Missing: ${missing.join(", ")}`
+		)
+	}
+
+	const user = env.POSTGRES_USER as string
+	const password = env.POSTGRES_PASSWORD as string
+	const host = env.POSTGRES_HOST as string
+	const port = env.POSTGRES_PORT as string
+	const database = env.POSTGRES_DB as string
+
+	return `postgresql://${user}:${password}@${host}:${port}/${database}`
 }
+
+const databaseUrl = resolvePostgresConnectionString(process.env)
 
 export const postgres = new PostgresStore({
 	id: "postgres-store",
-	connectionString: DATABASE_URL,
+	connectionString: databaseUrl,
 })
 
 export const postgresVector = new PgVector({
 	id: "postgres-vector",
-	connectionString: DATABASE_URL,
+	connectionString: databaseUrl,
 })

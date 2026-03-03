@@ -2,7 +2,6 @@ import { MastraClient } from "@mastra/client-js"
 import { Injectable } from "@nestjs/common"
 import {
 	type ArticleWorkflowOutput,
-	articleWorkflowInputSchema,
 	articleWorkflowOutputSchema,
 } from "@texturu/schemas"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
@@ -13,7 +12,7 @@ export class MastraService {
 
 	constructor(private readonly env: AppConfigService) {
 		this.client = new MastraClient({
-			baseUrl: this.env.get("MASTRA_HOST"),
+			baseUrl: this.env.mastraBaseUrl,
 		})
 	}
 

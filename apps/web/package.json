@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev:local": "dotenv -e ../../.env -- next dev --turbopack -p 80",
 		"build": "next build",
+		"build:docker": "next build --webpack",
 		"start": "next start",
 		"test": "node --test"
 	},

@@ -13,4 +13,8 @@ export class AppConfigService {
 	get isProd(): boolean {
 		return this.get("NODE_ENV") === "production"
 	}
+
+	get mastraBaseUrl(): string {
+		return `http://${this.get("MASTRA_HOST")}:${this.get("MASTRA_PORT")}`
+	}
 }

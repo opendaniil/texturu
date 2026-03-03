@@ -13,11 +13,12 @@ RUN pnpm install --frozen-lockfile
 
 # ── build ────────────────────────────────────────────
 FROM deps AS build
+ENV NODE_OPTIONS=--max-old-space-size=2048
 
 COPY packages/schemas packages/schemas
 COPY .env apps/web/.env
 COPY apps/web apps/web
-RUN pnpm --filter @texturu/schemas build && pnpm --filter ./apps/web build && rm -f apps/web/.env
+RUN pnpm --filter @texturu/schemas build && pnpm --filter ./apps/web build:docker && rm -f apps/web/.env
 
 # ── runner ────────────────────────────────────────────
 FROM node:24-alpine AS runner
