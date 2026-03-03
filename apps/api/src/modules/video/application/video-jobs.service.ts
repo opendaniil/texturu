@@ -1,19 +1,13 @@
 import { InjectQueue } from "@nestjs/bullmq"
 import { Injectable } from "@nestjs/common"
 import { Queue } from "bullmq"
+import { QueueUnavailableError } from "./video.errors"
 import {
 	type FetchCaptionsJobData,
 	type FetchInfoJobData,
 	type GenerateArticleJobData,
 	QUEUES,
 } from "./video-jobs.contract"
-
-export class VideoJobEnqueueError extends Error {
-	constructor(message: string, cause?: unknown) {
-		super(message, { cause })
-		this.name = "VideoJobEnqueueError"
-	}
-}
 
 const DEFAULT_JOB_OPTIONS = {
 	attempts: 3,
@@ -76,10 +70,7 @@ export class VideoJobsService {
 				jobId,
 			})
 		} catch (error) {
-			throw new VideoJobEnqueueError(
-				`Failed to enqueue ${name} for video ${videoId}`,
-				error
-			)
+			throw new QueueUnavailableError(error)
 		}
 	}
 

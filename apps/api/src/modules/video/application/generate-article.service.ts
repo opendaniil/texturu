@@ -7,6 +7,7 @@ import { VideoRepo } from "../data/video.repo"
 import { VideoArticleRepo } from "../data/video-article.repo"
 import { VideoCaptionRepo } from "../data/video-caption.repo"
 import { MastraService } from "./mastra.service"
+import { PlainTextNotFoundError } from "./video.errors"
 import { type GenerateArticleJobData } from "./video-jobs.contract"
 
 @Injectable()
@@ -28,7 +29,7 @@ export class GenerateArticleService {
 		const plainText =
 			await this.videoCaptionRepo.findPlainTextByVideoId(videoId)
 		if (!plainText) {
-			throw new Error(`No plain text found for video ${videoId}`)
+			throw new PlainTextNotFoundError(videoId)
 		}
 
 		const articleData = await this.mastraService.generateArticle(

@@ -8,6 +8,7 @@ import { parse } from "subtitle"
 import { Exec, YtDlp } from "ytdlp-nodejs"
 import { VideoRepo } from "../data/video.repo"
 import { VideoCaptionRepo } from "../data/video-caption.repo"
+import { CaptionsNotFoundError, SubtitleDownloadError } from "./video.errors"
 import { type FetchCaptionsJobData } from "./video-jobs.contract"
 import { VideoJobsService } from "./video-jobs.service"
 
@@ -52,7 +53,7 @@ export class FetchCaptionsService {
 			const selected = this.selectBestSubtitleLang(subtitleInfo)
 
 			if (!selected) {
-				throw new Error(`No subtitle tracks found for video ${videoId}`)
+				throw new CaptionsNotFoundError(videoId)
 			}
 
 			await this.removeTempSubtitles(videoId)
@@ -76,7 +77,7 @@ export class FetchCaptionsService {
 			const path = await this.getSubtitlePath(videoId)
 
 			if (!path) {
-				throw new Error(`No .vtt subtitle files found for video ${videoId}`)
+				throw new SubtitleDownloadError(videoId)
 			}
 
 			const vttText = await readFile(path, { encoding: "utf8" })

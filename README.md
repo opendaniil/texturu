@@ -4,10 +4,10 @@
 
 ## Приложения (Apps)
 
-* `apps/api` — NestJS API (`/api/*`), PostgreSQL (Kysely), воркеры очереди BullMQ ([README](apps/api/README.md))
-* `apps/web` — фронтенд на Next.js ([README](apps/web/README.md))
+* `apps/api` — NestJS API (`/api/*`), PostgreSQL (Kysely), воркеры очереди BullMQ
+* `apps/web` — фронтенд на Next.js
 * `apps/mastra` — AI-сервис Mastra
 
 ## Пакеты (Packages)
 
-* `packages/schemas` — общие Zod-схемы для доменной модели и API ([README](packages/schemas/README.md))
+* `packages/schemas` — общие Zod-схемы для доменной модели и API

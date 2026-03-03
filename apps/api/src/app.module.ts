@@ -1,8 +1,10 @@
 import { Module } from "@nestjs/common"
-import { APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core"
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core"
 import { ZodSerializerInterceptor } from "nestjs-zod"
+import { DomainExceptionFilter } from "./common/filters/domain-exception.filter"
 import { ZodValidationPipe } from "./common/pipes/zod-validation.pipe"
 import { AppConfigModule } from "./infra/app-config/app-config.module"
+import { CacheModule } from "./infra/cache/cache.module"
 import { DatabaseModule } from "./infra/database/database.module"
 import { HealthModule } from "./infra/health/health.module"
 import { QueueModule } from "./infra/queue/queue.module"
@@ -12,6 +14,7 @@ import { VideoModule } from "./modules/video"
 @Module({
 	imports: [
 		AppConfigModule,
+		CacheModule,
 		DatabaseModule,
 		QueueModule,
 		HealthModule,
@@ -20,6 +23,10 @@ import { VideoModule } from "./modules/video"
 	],
 	controllers: [],
 	providers: [
+		{
+			provide: APP_FILTER,
+			useClass: DomainExceptionFilter,
+		},
 		{
 			provide: APP_PIPE,
 			useClass: ZodValidationPipe,

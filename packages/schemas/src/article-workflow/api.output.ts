@@ -8,7 +8,7 @@ export const articleSectionSchema = z.object({
 export type ArticleSection = z.infer<typeof articleSectionSchema>
 
 export const articleWorkflowOutputSchema = z.object({
-	title: z.string().describe("Generated article title"),
+	title: z.string(),
 	description: z.string(),
 	globalSummary: z.string(),
 	sections: z.array(articleSectionSchema),

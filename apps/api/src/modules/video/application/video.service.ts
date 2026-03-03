@@ -1,19 +1,15 @@
-import {
-	Inject,
-	Injectable,
-	Logger,
-	ServiceUnavailableException,
-} from "@nestjs/common"
+import { Inject, Injectable, Logger } from "@nestjs/common"
 import type {
 	LatestVideoArticlesQuery,
 	ListVideosQuery,
 } from "@tubebook/schemas"
+import { CacheService } from "src/infra/cache/cache.service"
 import { UowService } from "src/infra/database/unit-of-work.service"
 import { VideoRepo } from "../data/video.repo"
 import { VideoArticleRepo } from "../data/video-article.repo"
 import { VideoInfoRepo } from "../data/video-info.repo"
 import type { CreateVideoDto } from "../entrypoint/rest/dto/create-video.dto"
-import { VideoJobEnqueueError, VideoJobsService } from "./video-jobs.service"
+import { VideoJobsService } from "./video-jobs.service"
 
 @Injectable()
 export class VideoService {
@@ -24,44 +20,35 @@ export class VideoService {
 		@Inject() private readonly videoRepo: VideoRepo,
 		@Inject() private readonly videoInfoRepo: VideoInfoRepo,
 		@Inject() private readonly videoArticleRepo: VideoArticleRepo,
-		@Inject() private readonly videoJobsService: VideoJobsService
+		@Inject() private readonly videoJobsService: VideoJobsService,
+		@Inject() private readonly cacheService: CacheService
 	) {}
 
 	async create(createVideoDto: CreateVideoDto) {
-		try {
-			const video = await this.uow.run(async (uow) => {
-				const created = await this.videoRepo.createOrGetByExternalId(
-					createVideoDto,
-					uow
-				)
+		const video = await this.uow.run(async (uow) => {
+			const created = await this.videoRepo.createOrGetByExternalId(
+				createVideoDto,
+				uow
+			)
 
-				if (created.isNew) {
-					await this.videoJobsService.enqueueFetchInfo({
-						videoId: created.id,
-						externalId: created.externalId,
-					})
-				}
-
-				return created
-			})
-
-			return {
-				id: video.id,
-				isNew: video.isNew,
-				source: video.source,
-				externalId: video.externalId,
-				redirectTo: `${video.id}`,
-				status: video.status,
-				statusMessage: video.statusMessage,
+			if (created.isNew) {
+				await this.videoJobsService.enqueueFetchInfo({
+					videoId: created.id,
+					externalId: created.externalId,
+				})
 			}
-		} catch (error) {
-			this.logger.error("Failed to create video", error)
-			if (error instanceof VideoJobEnqueueError) {
-				throw new ServiceUnavailableException(
-					"Queue is temporarily unavailable, please retry later."
-				)
-			}
-			throw error
+
+			return created
+		})
+
+		return {
+			id: video.id,
+			isNew: video.isNew,
+			source: video.source,
+			externalId: video.externalId,
+			redirectTo: `${video.id}`,
+			status: video.status,
+			statusMessage: video.statusMessage,
 		}
 	}
 
@@ -160,7 +147,11 @@ export class VideoService {
 	}
 
 	async latestArticles(query: LatestVideoArticlesQuery) {
-		const items = await this.videoArticleRepo.findLatest(query.limit)
+		const items = await this.cacheService.getOrSet(
+			`latest-articles:${query.limit}`,
+			() => this.videoArticleRepo.findLatest(query.limit),
+			60_000
+		)
 
 		return { items }
 	}
