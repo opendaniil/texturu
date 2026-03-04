@@ -10,7 +10,7 @@ export async function getLatestArticles(
 	signal?: AbortSignal
 ): Promise<LatestVideoArticlesResponse> {
 	const query = latestVideoArticlesQuerySchema.parse({
-		limit: 100,
+		limit: 10,
 	} satisfies LatestVideoArticlesQuery)
 	const searchParams = new URLSearchParams({
 		limit: String(query.limit),

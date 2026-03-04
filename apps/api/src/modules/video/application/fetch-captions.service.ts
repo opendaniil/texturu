@@ -1,5 +1,6 @@
 import { createReadStream } from "node:fs"
 import { readdir, readFile, rm } from "node:fs/promises"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Writable } from "node:stream"
 import { Injectable } from "@nestjs/common"
@@ -47,6 +48,7 @@ export class FetchCaptionsService {
 	private async downloadAndSaveSubtitles(videoId: string, youtubeId: string) {
 		const youtubeUrl = `https://www.youtube.com/watch?v=${youtubeId}`
 		const proxy = this.appConfig.get("YOUTUBE_PROXY")
+		const tempDir = this.getTempDir(videoId)
 
 		try {
 			const subtitleInfo = await this.fetchSubtitleInfo(youtubeUrl, proxy)
@@ -56,12 +58,12 @@ export class FetchCaptionsService {
 				throw new CaptionsNotFoundError(videoId)
 			}
 
-			await this.removeTempSubtitles(videoId)
+			await this.removeTempSubtitles(tempDir)
 
 			const builder = this.ytdlp
 				.download(youtubeUrl)
 				.proxy(proxy)
-				.setOutputTemplate(`temp/${videoId}/%(id)s.%(ext)s`)
+				.setOutputTemplate(join(tempDir, "%(id)s.%(ext)s"))
 				.addOption("subFormat", "vtt")
 				.subLangs([selected.lang])
 				.skipDownload()
@@ -74,7 +76,7 @@ export class FetchCaptionsService {
 
 			await builder.run().catch() // ошибки yt-dlp игнорируются, они непредсказуемы и не влияют на получение субтитров
 
-			const path = await this.getSubtitlePath(videoId)
+			const path = await this.getSubtitlePath(tempDir)
 
 			if (!path) {
 				throw new SubtitleDownloadError(videoId)
@@ -89,7 +91,7 @@ export class FetchCaptionsService {
 				plainText,
 			})
 		} finally {
-			await this.removeTempSubtitles(videoId)
+			await this.removeTempSubtitles(tempDir)
 		}
 	}
 
@@ -146,9 +148,7 @@ export class FetchCaptionsService {
 		return null
 	}
 
-	private async getSubtitlePath(videoId: string): Promise<string | null> {
-		const tempDir = join(process.cwd(), "temp", videoId)
-
+	private async getSubtitlePath(tempDir: string): Promise<string | null> {
 		const entries = await readdir(tempDir, { withFileTypes: true })
 		const file = entries.find((e) => e.isFile() && e.name.endsWith(".vtt"))
 
@@ -160,9 +160,16 @@ export class FetchCaptionsService {
 		return path
 	}
 
-	private async removeTempSubtitles(videoId: string) {
-		const tempDir = join(process.cwd(), "temp", videoId)
+	private async removeTempSubtitles(tempDir: string) {
 		await rm(tempDir, { recursive: true, force: true })
+	}
+
+	private getTempDir(videoId: string): string {
+		if (this.appConfig.isProd) {
+			return join(tmpdir(), "texturu", "captions", videoId)
+		}
+
+		return join(process.cwd(), "temp", videoId)
 	}
 
 	private convertToPlainText(path: string): Promise<string> {
