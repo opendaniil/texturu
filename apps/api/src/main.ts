@@ -17,6 +17,6 @@ async function bootstrap() {
 	enableCors(app, config)
 	if (!config.isProd) createSwagger(app)
 
-	await app.listen(config.get("API_PORT"))
+	await app.listen(3000)
 }
 bootstrap()
