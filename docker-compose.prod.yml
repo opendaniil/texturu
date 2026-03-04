@@ -41,6 +41,7 @@ services:
       - .env
     networks:
       - app_network
+      - databasus_net
     restart: unless-stopped
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h 127.0.0.1 -p 5432" ]
@@ -79,6 +80,8 @@ services:
 networks:
   app_network:
     driver: bridge
+  databasus_net:
+    external: true
 
 volumes:
   postgres-data:
