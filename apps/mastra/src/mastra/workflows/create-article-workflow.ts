@@ -29,7 +29,14 @@ const summariesSchema = z.object({
 	summaries: z.array(z.string()),
 })
 
-const SUMMARIZE_CONCURRENCY = 2
+const SUMMARIZE_CONCURRENCY = 5
+
+function getChunkConfig(textLength: number) {
+	const t = Math.max(0, Math.min(textLength, 100_000))
+	const maxSize = Math.round(800 + (t / 100_000) * 5_200)
+	const overlap = Math.round(maxSize * 0.15)
+	return { maxSize, overlap }
+}
 
 async function inBatches<T, R>(
 	items: T[],
@@ -43,6 +50,9 @@ async function inBatches<T, R>(
 			batch.map((item, j) => fn(item, i + j))
 		)
 		results.push(...batchResults)
+		if (i + batchSize < items.length) {
+			await new Promise((r) => setTimeout(r, 500))
+		}
 	}
 	return results
 }
@@ -59,11 +69,12 @@ const summarizeChunks = createStep({
 			throw new Error("Subtitles are empty")
 		}
 
+		const { maxSize, overlap } = getChunkConfig(subtitles.length)
 		const doc = MDocument.fromText(subtitles)
 		const chunks = await doc.chunk({
 			strategy: "token",
-			maxSize: 1_000,
-			overlap: 200,
+			maxSize,
+			overlap,
 		})
 
 		const chunkTexts = chunks
@@ -79,6 +90,7 @@ const summarizeChunks = createStep({
 			async (chunkText, index) => {
 				const { text } = await generateText({
 					model: llama318binstruct(),
+					maxRetries: 3,
 					system: `
 	Ваша задача — дать краткое и фактическое изложение данного отрывка.
 
@@ -127,21 +139,18 @@ const generateArticle = createStep({
 - Используй секции через заголовки H2 (##)
 - Не добавляй H1 (#), потому что title хранится отдельно
 - Последняя секция должна быть "## Вывод"`,
-			},
+				modelSettings: { maxRetries: 3 },
+			}
 		)
 
 		const article = articleDraft.text.trim()
 
 		const metadata = await agent.generate(
-			[
-				{
-					role: "user",
-					content: article,
-				},
-			],
+			[{ role: "user", content: article }],
 			{
 				system: `На основе статьи заполни метаданные. Отвечай на русском.`,
 				structuredOutput: { schema: articleMetadataSchema },
+				modelSettings: { maxRetries: 5 },
 			},
 		)
 

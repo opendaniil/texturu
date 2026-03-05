@@ -1,7 +1,21 @@
 import { useQuery } from "@tanstack/react-query"
-import type { Video, VideoStatusResponse } from "@texturu/schemas"
+import {
+	type Video,
+	type VideoStatusResponse,
+	videoStatusProgressOrder,
+} from "@texturu/schemas"
 import { ApiClientError } from "@/shared/lib/api-client"
 import { statusPoll } from "../api/status-poll"
+
+const TOTAL_STEPS = videoStatusProgressOrder.length
+
+const TITLE_SUFFIX = "| Texturu App"
+
+export function formatStatusTitle(data: VideoStatusResponse): string | null {
+	const idx = videoStatusProgressOrder.indexOf(data.status as never)
+	if (idx === -1) return null
+	return `(${idx + 1}/${TOTAL_STEPS}) ${data.statusMessage} ${TITLE_SUFFIX}`
+}
 
 const POLL_INTERVAL = 5_000
 

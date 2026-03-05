@@ -3,9 +3,13 @@
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { ApiClientError } from "@/shared/lib/api-client"
+import { useDocumentTitle } from "@/shared/lib/use-document-title"
 import { Button } from "@/shared/ui/button"
 import { container } from "@/shared/ui/container"
-import { useVideoStatusPoll } from "../model/video-status-poll"
+import {
+	formatStatusTitle,
+	useVideoStatusPoll,
+} from "../model/video-status-poll"
 import { StatusError } from "./status-error"
 import { StatusStepper } from "./status-stepper"
 import { StatusVideo } from "./status-video"
@@ -35,6 +39,8 @@ export default function StatusPage({ slug }: { slug: string }) {
 	const isProcessError = data?.status === "error"
 	const isShowStepper = !!data && !isProcessError
 	const isShowBackendError = isBackendError && !data
+
+	useDocumentTitle(data ? formatStatusTitle(data) : null)
 
 	const articleHref =
 		data?.status === "done" ? `/article/${data.articleSlug}` : null
