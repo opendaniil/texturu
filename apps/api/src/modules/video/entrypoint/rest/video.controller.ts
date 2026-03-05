@@ -15,6 +15,7 @@ import { CreateVideoDto } from "./dto/create-video.dto"
 import { CreateVideoResponseDto } from "./dto/create-video-response.dto"
 import { LatestVideoArticlesQueryDto } from "./dto/latest-video-articles-query.dto"
 import { LatestVideoArticlesResponseDto } from "./dto/latest-video-articles-response.dto"
+import { SitemapVideoArticlesResponseDto } from "./dto/sitemap-video-articles-response.dto"
 import { ListVideosQueryDto } from "./dto/list-videos-query.dto"
 import { ListVideosResponseDto } from "./dto/list-videos-response.dto"
 import { VideoArticleResponseDto } from "./dto/video-article-response.dto"
@@ -38,6 +39,12 @@ export class VideoController {
 	@ApiOkResponse({ type: ListVideosResponseDto })
 	list(@Query() query: ListVideosQueryDto) {
 		return this.videoService.list(query)
+	}
+
+	@Get("articles/sitemap")
+	@ApiOkResponse({ type: SitemapVideoArticlesResponseDto })
+	sitemapArticles() {
+		return this.videoService.sitemapArticles()
 	}
 
 	@Get("articles/latest")

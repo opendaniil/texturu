@@ -9,6 +9,19 @@ export const latestVideoArticleSchema = videoArticleApiSchema.pick({
 })
 export type LatestVideoArticle = z.infer<typeof latestVideoArticleSchema>
 
+export const sitemapVideoArticleSchema = videoArticleApiSchema.pick({
+	slug: true,
+	updatedAt: true,
+})
+export type SitemapVideoArticle = z.infer<typeof sitemapVideoArticleSchema>
+
+export const sitemapVideoArticlesResponseSchema = z.object({
+	items: z.array(sitemapVideoArticleSchema),
+})
+export type SitemapVideoArticlesResponse = z.infer<
+	typeof sitemapVideoArticlesResponseSchema
+>
+
 export const latestVideoArticlesResponseSchema = z.object({
 	items: z.array(latestVideoArticleSchema),
 })

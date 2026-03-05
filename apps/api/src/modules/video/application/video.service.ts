@@ -146,6 +146,11 @@ export class VideoService {
 		}
 	}
 
+	async sitemapArticles() {
+		const items = await this.videoArticleRepo.findForSitemap()
+		return { items }
+	}
+
 	async latestArticles(query: LatestVideoArticlesQuery) {
 		const items = await this.cacheService.getOrSet(
 			`latest-articles:${query.limit}`,
