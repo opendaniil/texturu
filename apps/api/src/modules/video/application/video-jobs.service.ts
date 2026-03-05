@@ -32,8 +32,7 @@ export class VideoJobsService {
 			this.fetchInfoQueue,
 			QUEUES.FETCHING_INFO,
 			payload,
-			this.toJobId(QUEUES.FETCHING_INFO, payload.videoId),
-			payload.videoId
+			this.toJobId(QUEUES.FETCHING_INFO, payload.videoId)
 		)
 	}
 
@@ -42,8 +41,7 @@ export class VideoJobsService {
 			this.fetchQueue,
 			QUEUES.FETCHING_CAPTIONS,
 			payload,
-			this.toJobId(QUEUES.FETCHING_CAPTIONS, payload.videoId),
-			payload.videoId
+			this.toJobId(QUEUES.FETCHING_CAPTIONS, payload.videoId)
 		)
 	}
 
@@ -53,7 +51,7 @@ export class VideoJobsService {
 			QUEUES.GENERATE_ARTICLE,
 			payload,
 			this.toJobId(QUEUES.GENERATE_ARTICLE, payload.videoId),
-			payload.videoId
+			{ attempts: 1 }
 		)
 	}
 
@@ -62,11 +60,12 @@ export class VideoJobsService {
 		name: string,
 		payload: TData,
 		jobId: string,
-		videoId: string
+		overrides?: Partial<typeof DEFAULT_JOB_OPTIONS>
 	) {
 		try {
 			await queue.add(name, payload, {
 				...DEFAULT_JOB_OPTIONS,
+				...overrides,
 				jobId,
 			})
 		} catch (error) {

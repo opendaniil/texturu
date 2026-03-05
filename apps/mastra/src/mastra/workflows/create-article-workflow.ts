@@ -1,45 +1,52 @@
 import { createStep, createWorkflow } from "@mastra/core/workflows"
 import { MDocument } from "@mastra/rag"
 import {
+	type ArticleWorkflowInput,
 	articleWorkflowInputSchema,
 	articleWorkflowOutputSchema,
 } from "@texturu/schemas"
+import { generateText } from "ai"
 import z from "zod"
+import { llama318binstruct } from "../models/llama-3.1-8b-instruct"
 import { ingestSubtitles } from "../store/subtitles"
 import { extractSectionsFromArticle } from "./article-sections.helper"
 
-const chunkSummarySchema = z.object({
-	summary: z.string().trim().min(1),
-})
-
 const finalArticleDraftSchema = z.object({
-	title: z.string().trim().min(1),
-	description: z.string().trim().min(1),
-	globalSummary: z.string().trim().min(1),
-	article: z.string().trim().min(1),
+	title: z.string().trim().min(1).describe("Заголовок статьи"),
+	description: z
+		.string()
+		.trim()
+		.min(1)
+		.describe("SEO meta description, 1-2 предложения"),
+	globalSummary: z
+		.string()
+		.trim()
+		.min(1)
+		.describe("Краткий пересказ для карточки, 2-3 предложения"),
+	article: z.string().trim().min(1).describe("Полный текст статьи в markdown"),
 })
 
-const createArticle = createStep({
-	id: "create-article",
-	description: "Generates an article from subtitles via chunk summaries",
+const summariesSchema = z.object({
+	summaries: z.array(z.string()),
+})
+
+const summarizeChunks = createStep({
+	id: "summarize-chunks",
+	description: "Splits subtitles into chunks and summarizes each one",
 	inputSchema: articleWorkflowInputSchema,
-	outputSchema: articleWorkflowOutputSchema,
-	execute: async ({ inputData, mastra }) => {
+	outputSchema: summariesSchema,
+	retries: 3,
+	execute: async ({ inputData }) => {
 		const subtitles = inputData.subtitles.trim()
 		if (subtitles.length === 0) {
 			throw new Error("Subtitles are empty")
 		}
 
-		const agent = mastra?.getAgent("createArticleAgent")
-		if (!agent) {
-			throw new Error("Article agent not found")
-		}
-
 		const doc = MDocument.fromText(subtitles)
 		const chunks = await doc.chunk({
 			strategy: "token",
-			maxSize: 16_000,
-			overlap: 500,
+			maxSize: 1_000,
+			overlap: 200,
 		})
 
 		const chunkTexts = chunks
@@ -49,56 +56,65 @@ const createArticle = createStep({
 			throw new Error("Chunking produced no non-empty chunks")
 		}
 
-		const mapSummaries = await Promise.all(
+		const summaries = await Promise.all(
 			chunkTexts.map(async (chunkText, index) => {
-				const mapResult = await agent.generate(
-					[
-						{
-							role: "user",
-							content: `
-	Сделай подробное summary чанка субтитров.
+				const { text } = await generateText({
+					model: llama318binstruct(),
 
-	Требования:
-	- Пиши на русском.
-	- Summary должен быть ёмким: сохраняй факты, аргументы, детали и примеры.
-	- Удали шум, повторы и бессмысленные фрагменты.
-	- Сохрани фактический смысл и ход мысли автора.
+					system: `
+	Ваша задача — дать краткое и фактическое изложение данного отрывка.
 
+	Правила:
+	- Ваш ответ должен быть на русском языке.
+	- Подведите итог, используя только информацию из данного отрывка. Не делайте выводов. Не используйте свои внутренние знания. 
+	- Не вводите преамбулу или пояснение, выведите только краткое содержание.`,
+
+					prompt: `
 	CHUNK_INDEX: ${index + 1}
 	SUBTITLES_CHUNK:
 	${chunkText}`,
-						},
-					],
-					{
-						structuredOutput: { schema: chunkSummarySchema },
-					}
-				)
+				})
 
-				return mapResult.object.summary
+				return text
 			})
 		)
+
+		return { summaries }
+	},
+})
+
+const generateArticle = createStep({
+	id: "generate-article",
+	description: "Generates final article from chunk summaries",
+	inputSchema: summariesSchema,
+	outputSchema: articleWorkflowOutputSchema,
+	retries: 3,
+	execute: async ({ inputData, mastra }) => {
+		const agent = mastra?.getAgent("createArticleAgent")
+		if (!agent) {
+			throw new Error("Article agent not found")
+		}
 
 		const finalArticleDraft = await agent.generate(
 			[
 				{
 					role: "user",
 					content: `
-	Создай финальную markdown-статью по summaries чанков и верни структурированный результат.
-
-	Требования:
-	- Язык ответа: русский.
-	- Верни поля: title, description, globalSummary, article.
-	- article должен быть в markdown.
-	- В article используй секции через заголовки H2 (##).
-	- В article не добавляй H1 (#), потому что title хранится отдельно.
-	- Последняя секция в article должна быть "## Вывод".
-	- Текст должен быть живым и интересным, без сухой канцелярщины.
-
 	MAP_SUMMARIES_JSON:
-	${JSON.stringify(mapSummaries)}`,
+	${JSON.stringify(inputData.summaries)}`,
 				},
 			],
 			{
+				system: `
+	Синтезируй единую связную статью по summaries чанков и верни структурированный результат.
+
+	Требования:
+	- Вывод должен быть на русском языке
+	- Пиши как статью
+	- В article используй секции через заголовки H2 (##)
+	- В article не добавляй H1 (#), потому что title хранится отдельно
+	- Последняя секция в article должна быть "## Вывод"`,
+
 				structuredOutput: { schema: finalArticleDraftSchema },
 			}
 		)
@@ -144,23 +160,21 @@ const embedSubtitles = createStep({
 	},
 })
 
-const pickArticle = createStep({
-	id: "pick-article",
-	inputSchema: z.object({
-		"create-article": articleWorkflowOutputSchema,
-		"embed-subtitles": z.void(),
-	}),
-	outputSchema: articleWorkflowOutputSchema,
-	execute: async ({ inputData }) => inputData["create-article"],
-})
-
 const createArticleWorkflow = createWorkflow({
 	id: "article-workflow",
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: articleWorkflowOutputSchema,
 })
-	.parallel([createArticle, embedSubtitles])
-	.then(pickArticle)
+	.then(summarizeChunks)
+	.then(generateArticle)
+	.map(async ({ getInitData }) => {
+		const { subtitles, videoId } = getInitData<ArticleWorkflowInput>()
+		return { subtitles, videoId }
+	})
+	.then(embedSubtitles)
+	.map(async ({ getStepResult }) => {
+		return getStepResult("generate-article")
+	})
 
 createArticleWorkflow.commit()
 
