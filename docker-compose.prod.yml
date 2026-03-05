@@ -73,6 +73,8 @@ services:
       - .env
     ports:
       - '0.0.0.0:${WEB_PORT}:3000'
+    volumes:
+      - web-cache:/app/apps/web/.next/cache
     networks:
       - app_network
     restart: unless-stopped
@@ -86,3 +88,4 @@ networks:
 volumes:
   postgres-data:
   redis-data:
+  web-cache:
