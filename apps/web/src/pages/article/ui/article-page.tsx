@@ -22,7 +22,24 @@ export async function generateMetadata({
 
 	if (!article) return { title: "Не найдено" }
 
-	return { title: article.title, description: article.description }
+	const { title, description, info } = article
+
+	return {
+		title,
+		description,
+		openGraph: {
+			title,
+			description,
+			type: "article",
+			images: info.thumbnail ? [{ url: info.thumbnail }] : undefined,
+		},
+		twitter: {
+			card: "summary_large_image",
+			title,
+			description,
+			images: info.thumbnail ? [info.thumbnail] : undefined,
+		},
+	}
 }
 
 type PageProps = {
