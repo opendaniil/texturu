@@ -11,7 +11,7 @@ import { llama318binstruct } from "../models/llama-3.1-8b-instruct"
 import { ingestSubtitles } from "../store/subtitles"
 import { extractSectionsFromArticle } from "./article-sections.helper"
 
-const finalArticleDraftSchema = z.object({
+const articleMetadataSchema = z.object({
 	title: z.string().trim().min(1).describe("Заголовок статьи"),
 	description: z
 		.string()
@@ -23,12 +23,29 @@ const finalArticleDraftSchema = z.object({
 		.trim()
 		.min(1)
 		.describe("Краткий пересказ для карточки, 2-3 предложения"),
-	article: z.string().trim().min(1).describe("Полный текст статьи в markdown"),
 })
 
 const summariesSchema = z.object({
 	summaries: z.array(z.string()),
 })
+
+const SUMMARIZE_CONCURRENCY = 2
+
+async function inBatches<T, R>(
+	items: T[],
+	batchSize: number,
+	fn: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+	const results: R[] = []
+	for (let i = 0; i < items.length; i += batchSize) {
+		const batch = items.slice(i, i + batchSize)
+		const batchResults = await Promise.all(
+			batch.map((item, j) => fn(item, i + j))
+		)
+		results.push(...batchResults)
+	}
+	return results
+}
 
 const summarizeChunks = createStep({
 	id: "summarize-chunks",
@@ -56,27 +73,26 @@ const summarizeChunks = createStep({
 			throw new Error("Chunking produced no non-empty chunks")
 		}
 
-		const summaries = await Promise.all(
-			chunkTexts.map(async (chunkText, index) => {
+		const summaries = await inBatches(
+			chunkTexts,
+			SUMMARIZE_CONCURRENCY,
+			async (chunkText, index) => {
 				const { text } = await generateText({
 					model: llama318binstruct(),
-
 					system: `
 	Ваша задача — дать краткое и фактическое изложение данного отрывка.
 
 	Правила:
 	- Ваш ответ должен быть на русском языке.
-	- Подведите итог, используя только информацию из данного отрывка. Не делайте выводов. Не используйте свои внутренние знания. 
+	- Подведите итог, используя только информацию из данного отрывка. Не делайте выводов. Не используйте свои внутренние знания.
 	- Не вводите преамбулу или пояснение, выведите только краткое содержание.`,
-
 					prompt: `
 	CHUNK_INDEX: ${index + 1}
 	SUBTITLES_CHUNK:
 	${chunkText}`,
 				})
-
 				return text
-			})
+			}
 		)
 
 		return { summaries }
@@ -95,37 +111,41 @@ const generateArticle = createStep({
 			throw new Error("Article agent not found")
 		}
 
-		const finalArticleDraft = await agent.generate(
+		const articleDraft = await agent.generate(
 			[
 				{
 					role: "user",
-					content: `
-	MAP_SUMMARIES_JSON:
-	${JSON.stringify(inputData.summaries)}`,
+					content: `MAP_SUMMARIES_JSON:\n${JSON.stringify(inputData.summaries)}`,
 				},
 			],
 			{
-				system: `
-	Синтезируй единую связную статью по summaries чанков и верни структурированный результат.
+				system: `Синтезируй единую связную статью по summaries чанков.
 
-	Требования:
-	- Вывод должен быть на русском языке
-	- Пиши как статью
-	- В article используй секции через заголовки H2 (##)
-	- В article не добавляй H1 (#), потому что title хранится отдельно
-	- Последняя секция в article должна быть "## Вывод"`,
-
-				structuredOutput: { schema: finalArticleDraftSchema },
-			}
+Требования:
+- Вывод должен быть на русском языке
+- Пиши как статью
+- Используй секции через заголовки H2 (##)
+- Не добавляй H1 (#), потому что title хранится отдельно
+- Последняя секция должна быть "## Вывод"`,
+			},
 		)
 
-		const {
-			title,
-			description,
-			globalSummary,
-			article: draftArticle,
-		} = finalArticleDraft.object
-		const article = draftArticle.trim()
+		const article = articleDraft.text.trim()
+
+		const metadata = await agent.generate(
+			[
+				{
+					role: "user",
+					content: article,
+				},
+			],
+			{
+				system: `На основе статьи заполни метаданные. Отвечай на русском.`,
+				structuredOutput: { schema: articleMetadataSchema },
+			},
+		)
+
+		const { title, description, globalSummary } = metadata.object
 		const sections = extractSectionsFromArticle(article)
 
 		return {
