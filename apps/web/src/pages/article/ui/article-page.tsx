@@ -22,22 +22,18 @@ export async function generateMetadata({
 
 	if (!article) return { title: "Не найдено" }
 
-	const { title, description, info } = article
-
 	return {
-		title,
-		description,
+		title: article.title,
+		description: article.description,
 		openGraph: {
-			title,
-			description,
+			title: article.title,
+			description: article.description,
 			type: "article",
-			images: info.thumbnail ? [{ url: info.thumbnail }] : undefined,
 		},
 		twitter: {
 			card: "summary_large_image",
-			title,
-			description,
-			images: info.thumbnail ? [info.thumbnail] : undefined,
+			title: article.title,
+			description: article.description,
 		},
 	}
 }
@@ -72,8 +68,33 @@ export async function ArticlePage({ params }: PageProps) {
 		"https://upload.wikimedia.org/wikipedia/commons/e/ef/ChatGPT-Logo.svg"
 	const infoTags = Array.from(new Set([...info.categories, ...info.tags]))
 
+	const jsonLd = {
+		"@context": "https://schema.org",
+		"@type": "Article",
+		headline: title,
+		description,
+		image: info.thumbnail,
+		datePublished: parsedUploadDate.toISOString(),
+		dateModified: new Date(createdAt).toISOString(),
+		author: {
+			"@type": "Person",
+			name: authorName,
+			url: authorLink,
+		},
+		publisher: {
+			"@type": "Organization",
+			name: "Texturu",
+			url: "https://textu.ru",
+		},
+	}
+
 	return (
 		<main className="min-h-dvh">
+			<script
+				type="application/ld+json"
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: needed for jsonLd
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+			/>
 			<section className="py-12 sm:py-16">
 				<div
 					className={`${container.narrow} flex flex-col items-center gap-4 text-center`}

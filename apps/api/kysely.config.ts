@@ -11,7 +11,9 @@ function resolvePostgresConnectionString(env: NodeJS.ProcessEnv): string {
 	].filter((key) => !env[key])
 
 	if (missing.length > 0) {
-		throw new Error(`POSTGRES_* variables must be set. Missing: ${missing.join(", ")}`)
+		throw new Error(
+			`POSTGRES_* variables must be set. Missing: ${missing.join(", ")}`
+		)
 	}
 
 	const user = env.POSTGRES_USER as string

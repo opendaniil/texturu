@@ -3,11 +3,7 @@ import type {
 	PaginationState,
 	SortingState,
 } from "@tanstack/react-table"
-import type {
-	ListVideosQuery,
-	ListVideosSortBy,
-	Video,
-} from "@texturu/schemas"
+import type { ListVideosQuery, ListVideosSortBy, Video } from "@texturu/schemas"
 
 export type VideosTableState = {
 	pagination: PaginationState
