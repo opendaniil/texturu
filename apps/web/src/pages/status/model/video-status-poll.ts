@@ -34,6 +34,7 @@ export function useVideoStatusPoll(videoId?: Video["id"]) {
 		enabled: !!videoId,
 		queryFn: statusPoll,
 		retry: false,
+		refetchIntervalInBackground: true,
 		refetchInterval: (query) => {
 			const data = query.state.data
 
