@@ -19,7 +19,7 @@
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
 		"test:e2e": "jest --config ./test/jest-e2e.json",
 		"db:migrate": "kysely migrate latest",
-		"db:types": "kysely-codegen",
+		"db:types": "kysely-codegen --url postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}",
 		"db:make": "kysely migrate make"
 	},
 	"dependencies": {

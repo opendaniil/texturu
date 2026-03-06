@@ -10,7 +10,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     apk update && apk add yt-dlp
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ${FOLDER}/package.json ${FOLDER}/package.json
 COPY packages/schemas/package.json packages/schemas/package.json
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
