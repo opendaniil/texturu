@@ -55,7 +55,7 @@ export default function RootLayout({
 	return (
 		<html lang="ru" className={inter.variable}>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${geistSans.variable} ${geistMono.variable} flex min-h-dvh flex-col antialiased`}
 			>
 				<Providers>
 					<Header />

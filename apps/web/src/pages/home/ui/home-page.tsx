@@ -1,3 +1,4 @@
+import { cn } from "@/shared/lib/utils"
 import { BackgroundLines } from "@/shared/ui/background-lines"
 import { container } from "@/shared/ui/container"
 import { LatestArticles } from "./latest-articles"
@@ -9,8 +10,8 @@ export function HomePage() {
 		"Вставь ссылку и получи структурированный конспект за несколько минут вместо долгого просмотра."
 
 	return (
-		<main className={container.default}>
-			<section className="flex h-full h-full w-full items-center justify-center overflow-hidden py-32">
+		<main className={cn(container.default, "flex-1 flex flex-col")}>
+			<section className="flex flex-1 w-full items-center justify-center overflow-hidden py-32">
 				<BackgroundLines className="container flex w-full flex-col items-center justify-center px-4 md:h-full">
 					<h1 className="relative z-20 py-2 text-center font-sans text-4xl font-semibold tracking-tighter text-balance md:py-10 sm:text-5xl lg:text-6xl">
 						{heading}

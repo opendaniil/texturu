@@ -151,7 +151,7 @@ const generateArticle = createStep({
 				system: `На основе статьи заполни метаданные. Отвечай на русском.`,
 				structuredOutput: { schema: articleMetadataSchema },
 				modelSettings: { maxRetries: 5 },
-			},
+			}
 		)
 
 		const { title, description, globalSummary } = metadata.object
