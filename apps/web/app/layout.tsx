@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	metadataBase: new URL("https://textu.ru"),
 	title: {
-		template: "%s | Texturu App",
-		default: "Texturu App",
+		template: "%s | Textu.ru",
+		default: "Textu.ru",
 	},
 	description: "Читать видео вместо просмотра",
 
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
 		],
 	},
 
-	applicationName: "Texturu App",
+	applicationName: "Textu.ru",
 	openGraph: {
-		siteName: "Texturu App",
+		siteName: "Textu.ru",
 		type: "website",
 		locale: "ru_RU",
 	},

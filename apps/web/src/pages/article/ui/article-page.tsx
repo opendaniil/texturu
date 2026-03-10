@@ -83,7 +83,7 @@ export async function ArticlePage({ params }: PageProps) {
 		},
 		publisher: {
 			"@type": "Organization",
-			name: "Texturu",
+			name: "Textu.ru",
 			url: "https://textu.ru",
 		},
 	}

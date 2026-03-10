@@ -9,7 +9,7 @@ import { statusPoll } from "../api/status-poll"
 
 const TOTAL_STEPS = videoStatusProgressOrder.length
 
-const TITLE_SUFFIX = "| Texturu App"
+const TITLE_SUFFIX = "| Textu.ru"
 
 export function formatStatusTitle(data: VideoStatusResponse): string | null {
 	const idx = videoStatusProgressOrder.indexOf(data.status as never)

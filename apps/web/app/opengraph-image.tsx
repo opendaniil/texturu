@@ -31,7 +31,7 @@ export default function Image() {
 					display: "flex",
 				}}
 			>
-				Texturu
+				Textu.ru
 			</div>
 			<div
 				style={{
