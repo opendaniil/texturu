@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Injectable, Logger } from "@nestjs/common"
 import { Job } from "bullmq"
+import { MetricsService } from "src/infra/otel/metrics.service"
 import { FetchCaptionsService } from "../../application/fetch-captions.service"
 import {
 	type FetchCaptionsJobData,
@@ -14,14 +15,23 @@ type ProcessPayload = FetchCaptionsJobData
 export class FetchCaptionsWorker extends WorkerHost {
 	private logger = new Logger(FetchCaptionsWorker.name)
 
-	constructor(private readonly videoWorkflowService: FetchCaptionsService) {
+	constructor(
+		private readonly videoWorkflowService: FetchCaptionsService,
+		private readonly metrics: MetricsService
+	) {
 		super()
 	}
 
 	async process(job: Job<ProcessPayload>) {
+		this.logger.log(`Start jobId=${job.id} attempt=${job.attemptsMade + 1}`)
+		const start = performance.now()
 		try {
-			this.logger.log(`Start jobId=${job.id} attempt=${job.attemptsMade + 1}`)
 			await this.videoWorkflowService.process(job.data)
+			const durationS = (performance.now() - start) / 1000
+			this.metrics.jobDuration.record(durationS, {
+				queue: QUEUES.FETCHING_CAPTIONS,
+			})
+			this.metrics.jobCompleted.add(1, { queue: QUEUES.FETCHING_CAPTIONS })
 		} catch (error) {
 			this.logger.error(
 				`Failed jobId=${job.id} attempt=${job.attemptsMade + 1}`,
@@ -45,6 +55,8 @@ export class FetchCaptionsWorker extends WorkerHost {
 		if (!isFinalAttempt) {
 			return
 		}
+
+		this.metrics.jobFailed.add(1, { queue: QUEUES.FETCHING_CAPTIONS })
 
 		const message = (error?.message ?? "Unknown error").trim()
 		this.logger.error(

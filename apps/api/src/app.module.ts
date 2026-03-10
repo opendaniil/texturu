@@ -7,6 +7,7 @@ import { AppConfigModule } from "./infra/app-config/app-config.module"
 import { CacheModule } from "./infra/cache/cache.module"
 import { DatabaseModule } from "./infra/database/database.module"
 import { HealthModule } from "./infra/health/health.module"
+import { OtelModule } from "./infra/otel/otel.module"
 import { QueueModule } from "./infra/queue/queue.module"
 import { ChatModule } from "./modules/chat"
 import { VideoModule } from "./modules/video"
@@ -14,6 +15,7 @@ import { VideoModule } from "./modules/video"
 @Module({
 	imports: [
 		AppConfigModule,
+		OtelModule,
 		CacheModule,
 		DatabaseModule,
 		QueueModule,

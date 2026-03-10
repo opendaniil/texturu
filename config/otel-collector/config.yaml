@@ -1,0 +1,29 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  otlphttp/openobserve:
+    endpoint: ${env:OTEL_OPENOBSERVE_ENDPOINT}
+    headers:
+      Authorization: "Basic ${env:OTEL_OPENOBSERVE_TOKEN}"
+      stream-name: ${env:DEPLOY_ENV}
+
+service:
+  telemetry:
+    logs:
+      level: warn
+    metrics:
+      level: none
+  pipelines:
+    logs:
+      receivers: [otlp]
+      exporters: [otlphttp/openobserve]
+    metrics:
+      receivers: [otlp]
+      exporters: [otlphttp/openobserve]
+    traces:
+      receivers: [otlp]
+      exporters: [otlphttp/openobserve]

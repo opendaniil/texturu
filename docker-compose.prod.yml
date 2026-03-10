@@ -12,12 +12,15 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      TZ: UTC
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     ports:
       - '0.0.0.0:${API_PORT}:3000'
     networks:
       - app_network
     command: >
-      sh -c "pnpm db:migrate && node dist/src/main"
+      sh -c "pnpm db:migrate && node dist/src/main.js"
     restart: unless-stopped
 
   mastra:
@@ -29,6 +32,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     networks:
       - app_network
     restart: unless-stopped
@@ -64,6 +69,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    volumes:
+      - /mnt/nvme-netac/data/gitops/texturu/config/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    env_file:
+      - .env
+    networks:
+      - app_network
+    restart: unless-stopped
 
   web:
     build:

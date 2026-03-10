@@ -3,11 +3,15 @@ packages:
   - libs/**
   - packages/**
 
+ignoredBuiltDependencies:
+  - ytdlp-nodejs
+
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@scarf/scarf'
   - esbuild
   - msgpackr-extract
   - msw
+  - protobufjs
   - sharp
   - unrs-resolver

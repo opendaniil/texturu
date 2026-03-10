@@ -19,12 +19,16 @@ services:
       - /app/apps/api/node_modules
     env_file:
       - .env
+    environment:
+      TZ: UTC
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     ports:
       # for local development
       - '127.0.0.1:${API_PORT}:3000'
     networks:
       - database_network
       - redis_network
+      - otel_network
     command: "pnpm --filter ./apps/api dev"
     restart: unless-stopped
 
@@ -43,6 +47,7 @@ services:
     environment:
       WATCHPACK_POLLING: true
       CHOKIDAR_USEPOLLING: true
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     env_file:
       - .env
     ports:
@@ -50,6 +55,7 @@ services:
       - '127.0.0.1:${MASTRA_PORT}:4111'
     networks:
       - database_network
+      - otel_network
     command: "pnpm --filter ./apps/mastra dev"
     restart: unless-stopped
 
@@ -106,10 +112,27 @@ services:
     command: "pnpm --filter @texturu/schemas dev"
     restart: unless-stopped
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    volumes:
+      - ./config/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    env_file:
+      - .env
+    environment:
+      # - OTEL_LOG_LEVEL=warn
+      - GODEBUG=http2client=0
+    ports:
+      - '127.0.0.1:4318:4318'
+    networks:
+      - otel_network
+    restart: unless-stopped
+
 networks:
   database_network:
     driver: bridge
   redis_network:
+    driver: bridge
+  otel_network:
     driver: bridge
 
 volumes:

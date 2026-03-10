@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
 	turbopack: {},
 	productionBrowserSourceMaps: false,
 	experimental: {
-		serverSourceMaps: false,
+		serverSourceMaps: process.env.NODE_ENV === "development",
 		webpackMemoryOptimizations: true,
 	},
 }

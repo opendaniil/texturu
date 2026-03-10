@@ -8,8 +8,9 @@ import {
 	Observability,
 	SensitiveDataFilter,
 } from "@mastra/observability"
+import { OtelExporter } from "@mastra/otel-exporter"
 import { articleAgent } from "./agents/article-agent"
-import { createArticleAgent } from "./agents/create-article-agent"
+import { otelTransport } from "./infra/otel-transport"
 import { createIndexes } from "./store/create-indexes"
 import { postgres, postgresVector } from "./store/pg"
 import { createArticleWorkflow } from "./workflows/create-article-workflow"
@@ -18,7 +19,7 @@ await createIndexes()
 
 export const mastra = new Mastra({
 	workflows: { createArticleWorkflow },
-	agents: { createArticleAgent, articleAgent },
+	agents: { articleAgent },
 
 	memory: {
 		default: new Memory({
@@ -36,6 +37,7 @@ export const mastra = new Mastra({
 	logger: new PinoLogger({
 		name: "Mastra",
 		level: "info",
+		transports: { otel: otelTransport },
 	}),
 
 	observability: new Observability({
@@ -45,6 +47,14 @@ export const mastra = new Mastra({
 				exporters: [
 					new DefaultExporter(), // Persists traces to storage for Mastra Studio
 					new CloudExporter(), // Sends traces to Mastra Cloud (if MASTRA_CLOUD_ACCESS_TOKEN is set)
+					new OtelExporter({
+						provider: {
+							custom: {
+								endpoint: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces`,
+								protocol: "http/json",
+							},
+						},
+					}), // Sends traces to OTel Collector → OpenObserve
 				],
 				spanOutputProcessors: [
 					new SensitiveDataFilter(), // Redacts sensitive data like passwords, tokens, keys
