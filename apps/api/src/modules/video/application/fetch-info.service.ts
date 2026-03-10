@@ -6,6 +6,8 @@ import { VideoInfoRepo } from "../data/video-info.repo"
 import { type FetchInfoJobData } from "./video-jobs.contract"
 import { VideoJobsService } from "./video-jobs.service"
 
+const MAX_VIDEO_DURATION_SECONDS = 180 * 60 // 3 часа
+
 @Injectable()
 export class FetchInfoService {
 	private readonly ytdlp: YtDlp
@@ -27,7 +29,15 @@ export class FetchInfoService {
 			statusMessage: "Получение информации о видео",
 		})
 
-		await this.fetchAndSaveInfo(videoId, externalId)
+		const { duration } = await this.fetchAndSaveInfo(videoId, externalId)
+
+		if (duration > MAX_VIDEO_DURATION_SECONDS) {
+			const durationMin = Math.round(duration / 60)
+			const limitMin = MAX_VIDEO_DURATION_SECONDS / 60
+			await this.markFailed(videoId, `Видео слишком длинное (${durationMin} мин). Максимум — ${limitMin} мин`)
+			return
+		}
+
 		await this.videoJobsService.enqueueFetchCaptions({ videoId, externalId })
 	}
 
@@ -38,7 +48,7 @@ export class FetchInfoService {
 		})
 	}
 
-	private async fetchAndSaveInfo(videoId: string, youtubeId: string) {
+	private async fetchAndSaveInfo(videoId: string, youtubeId: string): Promise<{ duration: number }> {
 		const youtubeUrl = `https://www.youtube.com/watch?v=${youtubeId}`
 		const proxy = this.appConfig.get("YOUTUBE_PROXY")
 
@@ -73,5 +83,7 @@ export class FetchInfoService {
 				uploadDate,
 			},
 		})
+
+		return { duration }
 	}
 }
