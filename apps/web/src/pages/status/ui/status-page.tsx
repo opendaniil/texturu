@@ -1,13 +1,16 @@
 "use client"
 
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { ApiClientError } from "@/shared/lib/api-client"
 import { useDocumentTitle } from "@/shared/lib/use-document-title"
 import { Button } from "@/shared/ui/button"
 import { container } from "@/shared/ui/container"
+import { Spinner } from "@/shared/ui/spinner"
 import {
 	formatStatusTitle,
+	isNotFoundError,
 	useVideoStatusPoll,
 } from "../model/video-status-poll"
 import { StatusError } from "./status-error"
@@ -20,7 +23,6 @@ export const metadata = {
 
 function getBackendErrorMessage(error: unknown): string {
 	if (error instanceof ApiClientError) {
-		if (error.status === 404) return "Видео не найдено"
 		if (error.status >= 500) return "Проблема на сервере. Пробуем снова..."
 		return `Не удалось получить статус видео (HTTP ${error.status})`
 	}
@@ -32,13 +34,26 @@ function getBackendErrorMessage(error: unknown): string {
 	return "Не удалось получить статус видео. Пробуем снова..."
 }
 
+function isRetryableError(error: unknown): boolean {
+	if (isNotFoundError(error)) return false
+	if (error instanceof ApiClientError && error.status >= 400 && error.status < 500) return false
+	return true
+}
+
 export default function StatusPage({ slug }: { slug: string }) {
 	const router = useRouter()
-	const { data, isError: isBackendError, error } = useVideoStatusPoll(slug)
+	const {
+		data,
+		isPending,
+		isError: isBackendError,
+		error,
+	} = useVideoStatusPoll(slug)
 
+	const is404 = isNotFoundError(error)
 	const isProcessError = data?.status === "error"
-	const isShowStepper = !!data && !isProcessError
+	const isShowStepper = !!data && !isProcessError && !is404
 	const isShowBackendError = isBackendError && !data
+	const isRetrying = isBackendError && !is404 && isRetryableError(error)
 
 	useDocumentTitle(data ? formatStatusTitle(data) : null)
 
@@ -57,10 +72,41 @@ export default function StatusPage({ slug }: { slug: string }) {
 					<StatusVideo source={data?.source} externalId={data?.externalId} />
 
 					<div className="flex justify-center">
-						{isProcessError && <StatusError message={data.statusMessage} />}
+						{isPending && !data && (
+							<Spinner className="size-8" />
+						)}
 
-						{isShowBackendError && (
-							<StatusError message={getBackendErrorMessage(error)} />
+						{isProcessError && (
+							<StatusError
+								title="Не удалось обработать видео"
+								message={data.statusMessage}
+							>
+								<Button asChild variant="outline" className="w-full">
+									<Link href="/">Попробовать другое видео</Link>
+								</Button>
+							</StatusError>
+						)}
+
+						{is404 && (
+							<StatusError title="Видео не найдено">
+								<Button asChild variant="outline" className="w-full">
+									<Link href="/">На главную</Link>
+								</Button>
+							</StatusError>
+						)}
+
+						{isShowBackendError && !is404 && (
+							<StatusError
+								title="Проблема с сервером"
+								message={getBackendErrorMessage(error)}
+							>
+								{isRetrying && (
+									<div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+										<Spinner className="size-4" />
+										<span>Пробуем снова...</span>
+									</div>
+								)}
+							</StatusError>
 						)}
 
 						{isShowStepper && (
@@ -71,7 +117,7 @@ export default function StatusPage({ slug }: { slug: string }) {
 						)}
 					</div>
 
-					{isBackendError && data && (
+					{isBackendError && data && !is404 && (
 						<p className="text-sm text-muted-foreground text-center">
 							Не удалось обновить статус. Пробуем снова...
 						</p>
@@ -79,7 +125,7 @@ export default function StatusPage({ slug }: { slug: string }) {
 
 					{articleHref && (
 						<Button onClick={() => router.push(articleHref)} className="w-full">
-							Перейти к статье
+							Перейти к статье
 						</Button>
 					)}
 				</div>

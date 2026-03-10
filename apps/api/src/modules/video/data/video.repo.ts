@@ -97,7 +97,7 @@ export class VideoRepo {
 	): Promise<Video & { isNew: boolean }> {
 		const { isNew, ...row } = await executor
 			.insertInto("videos")
-			.values({ externalId: externalId, source })
+			.values({ externalId, source, statusMessage: "В очереди" })
 			.onConflict(
 				(oc) =>
 					oc

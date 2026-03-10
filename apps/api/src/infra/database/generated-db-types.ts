@@ -23,6 +23,472 @@ export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface MastraAgents {
+  activeVersionId: string | null;
+  authorId: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  metadata: Json | null;
+  status: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraAgentVersions {
+  agentId: string;
+  agents: Json | null;
+  changedFields: Json | null;
+  changeMessage: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  defaultOptions: Json | null;
+  description: string | null;
+  id: string;
+  inputProcessors: Json | null;
+  instructions: string;
+  integrationTools: Json | null;
+  mcpClients: Json | null;
+  memory: Json | null;
+  model: Json;
+  name: string;
+  outputProcessors: Json | null;
+  requestContextSchema: Json | null;
+  scorers: Json | null;
+  skills: Json | null;
+  skillsFormat: string | null;
+  tools: Json | null;
+  versionNumber: number;
+  workflows: Json | null;
+  workspace: Json | null;
+}
+
+export interface MastraAiSpans {
+  attributes: Json | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  endedAt: Timestamp | null;
+  endedAtZ: Generated<Timestamp | null>;
+  entityId: string | null;
+  entityName: string | null;
+  entityType: string | null;
+  environment: string | null;
+  error: Json | null;
+  input: Json | null;
+  isEvent: boolean;
+  links: Json | null;
+  metadata: Json | null;
+  name: string;
+  organizationId: string | null;
+  output: Json | null;
+  parentSpanId: string | null;
+  requestId: string | null;
+  resourceId: string | null;
+  runId: string | null;
+  scope: Json | null;
+  serviceName: string | null;
+  sessionId: string | null;
+  source: string | null;
+  spanId: string;
+  spanType: string;
+  startedAt: Timestamp;
+  startedAtZ: Generated<Timestamp | null>;
+  tags: Json | null;
+  threadId: string | null;
+  traceId: string;
+  updatedAt: Timestamp | null;
+  updatedAtZ: Generated<Timestamp | null>;
+  userId: string | null;
+}
+
+export interface MastraDatasetItems {
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  datasetId: string;
+  datasetVersion: number;
+  groundTruth: Json | null;
+  id: string;
+  input: Json;
+  isDeleted: boolean;
+  metadata: Json | null;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+  validTo: number | null;
+}
+
+export interface MastraDatasets {
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  description: string | null;
+  groundTruthSchema: Json | null;
+  id: string;
+  inputSchema: Json | null;
+  metadata: Json | null;
+  name: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+  version: number;
+}
+
+export interface MastraDatasetVersions {
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  datasetId: string;
+  id: string;
+  version: number;
+}
+
+export interface MastraExperimentResults {
+  completedAt: Timestamp;
+  completedAtZ: Generated<Timestamp | null>;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  error: Json | null;
+  experimentId: string;
+  groundTruth: Json | null;
+  id: string;
+  input: Json;
+  itemDatasetVersion: number | null;
+  itemId: string;
+  output: Json | null;
+  retryCount: number;
+  startedAt: Timestamp;
+  startedAtZ: Generated<Timestamp | null>;
+  traceId: string | null;
+}
+
+export interface MastraExperiments {
+  completedAt: Timestamp | null;
+  completedAtZ: Generated<Timestamp | null>;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  datasetId: string | null;
+  datasetVersion: number | null;
+  description: string | null;
+  failedCount: number;
+  id: string;
+  metadata: Json | null;
+  name: string | null;
+  skippedCount: number;
+  startedAt: Timestamp | null;
+  startedAtZ: Generated<Timestamp | null>;
+  status: string;
+  succeededCount: number;
+  targetId: string;
+  targetType: string;
+  totalItems: number;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraMcpClients {
+  activeVersionId: string | null;
+  authorId: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  metadata: Json | null;
+  status: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraMcpClientVersions {
+  changedFields: Json | null;
+  changeMessage: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  description: string | null;
+  id: string;
+  mcpClientId: string;
+  name: string;
+  servers: Json;
+  versionNumber: number;
+}
+
+export interface MastraMcpServers {
+  activeVersionId: string | null;
+  authorId: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  metadata: Json | null;
+  status: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraMcpServerVersions {
+  agents: Json | null;
+  changedFields: Json | null;
+  changeMessage: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  description: string | null;
+  id: string;
+  instructions: string | null;
+  isLatest: boolean | null;
+  mcpServerId: string;
+  name: string;
+  packageCanonical: string | null;
+  releaseDate: string | null;
+  repository: Json | null;
+  tools: Json | null;
+  version: string;
+  versionNumber: number;
+  workflows: Json | null;
+}
+
+export interface MastraMessages {
+  content: string;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  resourceId: string | null;
+  role: string;
+  threadId: string;
+  type: string;
+}
+
+export interface MastraObservationalMemory {
+  activeObservations: string;
+  activeObservationsPendingUpdate: string | null;
+  bufferedMessageIds: Json | null;
+  bufferedObservationChunks: Json | null;
+  bufferedObservations: string | null;
+  bufferedObservationTokens: number | null;
+  bufferedReflection: string | null;
+  bufferedReflectionInputTokens: number | null;
+  bufferedReflectionTokens: number | null;
+  config: string;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  generationCount: number;
+  id: string;
+  isBufferingObservation: boolean;
+  isBufferingReflection: boolean;
+  isObserving: boolean;
+  isReflecting: boolean;
+  lastBufferedAtTime: Timestamp | null;
+  lastBufferedAtTimeZ: Generated<Timestamp | null>;
+  lastBufferedAtTokens: number;
+  lastObservedAt: Timestamp | null;
+  lastObservedAtZ: Generated<Timestamp | null>;
+  lastReflectionAt: Timestamp | null;
+  lastReflectionAtZ: Generated<Timestamp | null>;
+  lookupKey: string;
+  metadata: Json | null;
+  observationTokenCount: number;
+  observedMessageIds: Json | null;
+  observedTimezone: string | null;
+  originType: string;
+  pendingMessageTokens: number;
+  reflectedObservationLineCount: number | null;
+  resourceId: string | null;
+  scope: string;
+  threadId: string | null;
+  totalTokensObserved: number;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraPromptBlocks {
+  activeVersionId: string | null;
+  authorId: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  metadata: Json | null;
+  status: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraPromptBlockVersions {
+  blockId: string;
+  changedFields: Json | null;
+  changeMessage: string | null;
+  content: string;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  description: string | null;
+  id: string;
+  name: string;
+  requestContextSchema: Json | null;
+  rules: Json | null;
+  versionNumber: number;
+}
+
+export interface MastraResources {
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  metadata: Json | null;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+  workingMemory: string | null;
+}
+
+export interface MastraScorerDefinitions {
+  activeVersionId: string | null;
+  authorId: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  metadata: Json | null;
+  status: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraScorerDefinitionVersions {
+  changedFields: Json | null;
+  changeMessage: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  defaultSampling: Json | null;
+  description: string | null;
+  id: string;
+  instructions: string | null;
+  model: Json | null;
+  name: string;
+  presetConfig: Json | null;
+  scoreRange: Json | null;
+  scorerDefinitionId: string;
+  type: string;
+  versionNumber: number;
+}
+
+export interface MastraScorers {
+  additionalContext: Json | null;
+  analyzePrompt: string | null;
+  analyzeStepResult: Json | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  entity: Json | null;
+  entityId: string | null;
+  entityType: string | null;
+  extractPrompt: string | null;
+  extractStepResult: Json | null;
+  generateReasonPrompt: string | null;
+  generateScorePrompt: string | null;
+  id: string;
+  input: Json;
+  metadata: Json | null;
+  output: Json;
+  preprocessPrompt: string | null;
+  preprocessStepResult: Json | null;
+  reason: string | null;
+  reasonPrompt: string | null;
+  requestContext: Json | null;
+  resourceId: string | null;
+  runId: string;
+  score: number;
+  scorer: Json;
+  scorerId: string;
+  source: string;
+  spanId: string | null;
+  threadId: string | null;
+  traceId: string | null;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraSkillBlobs {
+  content: string;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  hash: string;
+  mimeType: string | null;
+  size: number;
+}
+
+export interface MastraSkills {
+  activeVersionId: string | null;
+  authorId: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  status: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraSkillVersions {
+  assets: Json | null;
+  changedFields: Json | null;
+  changeMessage: string | null;
+  compatibility: Json | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  description: string;
+  id: string;
+  instructions: string;
+  license: string | null;
+  metadata: Json | null;
+  name: string;
+  references: Json | null;
+  scripts: Json | null;
+  skillId: string;
+  source: Json | null;
+  tree: Json | null;
+  versionNumber: number;
+}
+
+export interface MastraThreads {
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  metadata: Json | null;
+  resourceId: string;
+  title: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraWorkflowSnapshot {
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  resourceId: string | null;
+  runId: string;
+  snapshot: Json;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+  workflowName: string;
+}
+
+export interface MastraWorkspaces {
+  activeVersionId: string | null;
+  authorId: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  id: string;
+  metadata: Json | null;
+  status: string;
+  updatedAt: Timestamp;
+  updatedAtZ: Generated<Timestamp | null>;
+}
+
+export interface MastraWorkspaceVersions {
+  autoSync: boolean | null;
+  changedFields: Json | null;
+  changeMessage: string | null;
+  createdAt: Timestamp;
+  createdAtZ: Generated<Timestamp | null>;
+  description: string | null;
+  filesystem: Json | null;
+  id: string;
+  mounts: Json | null;
+  name: string;
+  operationTimeout: number | null;
+  sandbox: Json | null;
+  search: Json | null;
+  skills: Json | null;
+  tools: Json | null;
+  versionNumber: number;
+  workspaceId: string;
+}
+
 export interface Subtitles {
   embedding: string | null;
   id: Generated<number>;
@@ -79,6 +545,33 @@ export interface Videos {
 }
 
 export interface DB {
+  mastraAgents: MastraAgents;
+  mastraAgentVersions: MastraAgentVersions;
+  mastraAiSpans: MastraAiSpans;
+  mastraDatasetItems: MastraDatasetItems;
+  mastraDatasets: MastraDatasets;
+  mastraDatasetVersions: MastraDatasetVersions;
+  mastraExperimentResults: MastraExperimentResults;
+  mastraExperiments: MastraExperiments;
+  mastraMcpClients: MastraMcpClients;
+  mastraMcpClientVersions: MastraMcpClientVersions;
+  mastraMcpServers: MastraMcpServers;
+  mastraMcpServerVersions: MastraMcpServerVersions;
+  mastraMessages: MastraMessages;
+  mastraObservationalMemory: MastraObservationalMemory;
+  mastraPromptBlocks: MastraPromptBlocks;
+  mastraPromptBlockVersions: MastraPromptBlockVersions;
+  mastraResources: MastraResources;
+  mastraScorerDefinitions: MastraScorerDefinitions;
+  mastraScorerDefinitionVersions: MastraScorerDefinitionVersions;
+  mastraScorers: MastraScorers;
+  mastraSkillBlobs: MastraSkillBlobs;
+  mastraSkills: MastraSkills;
+  mastraSkillVersions: MastraSkillVersions;
+  mastraThreads: MastraThreads;
+  mastraWorkflowSnapshot: MastraWorkflowSnapshot;
+  mastraWorkspaces: MastraWorkspaces;
+  mastraWorkspaceVersions: MastraWorkspaceVersions;
   subtitles: Subtitles;
   videoArticles: VideoArticles;
   videoCaptions: VideoCaptions;

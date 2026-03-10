@@ -96,7 +96,7 @@ const summarizeChunks = createStep({
 				const { text } = await generateText({
 					// Почему использую llama 3.1 8b instruct?
 					// 5.4 % рейтинг галлюцинаций https://github.com/vectara/hallucination-leaderboard/tree/hhem-2.3-old-dataset
-					// 300 токенов в секунду
+					// 300+ токенов в секунду
 					model: llama318binstruct(),
 					maxRetries: 3,
 					system: `
@@ -130,7 +130,7 @@ const generateArticle = createStep({
 
 		const articleDraft = await generateText({
 			model,
-			maxRetries: 3,
+			maxRetries: 2,
 			system: `
 	Ты — автор информационных статей на русском языке. Твоя задача — написать связную статью из пронумерованных саммари, которые идут в хронологическом порядке.
 
@@ -151,7 +151,7 @@ const generateArticle = createStep({
 
 		const metadata = await generateText({
 			model,
-			maxRetries: 5,
+			maxRetries: 3,
 			output: Output.object({ schema: articleMetadataSchema }),
 			system: `
 	На основе статьи заполни метаданные.

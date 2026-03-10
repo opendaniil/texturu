@@ -19,7 +19,7 @@ export function formatStatusTitle(data: VideoStatusResponse): string | null {
 
 const POLL_INTERVAL = 5_000
 
-function isNotFoundError(error: unknown): boolean {
+export function isNotFoundError(error: unknown): boolean {
 	return error instanceof ApiClientError && error.status === 404
 }
 
@@ -38,8 +38,8 @@ export function useVideoStatusPoll(videoId?: Video["id"]) {
 		refetchInterval: (query) => {
 			const data = query.state.data
 
-			if (data?.isFinal === true) return 0
-			if (!data && !query.state.error) return 0
+			if (data?.isFinal === true) return false
+			if (!data && !query.state.error) return false
 
 			if (isNotFoundError(query.state.error)) return false
 

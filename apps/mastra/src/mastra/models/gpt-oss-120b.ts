@@ -6,15 +6,20 @@ export const gptOss120 = (
 	reasoning?: OpenRouterSharedSettings["reasoning"]
 ) =>
 	openrouter("openai/gpt-oss-120b", {
+		debug: {
+			echo_upstream_body: true,
+		},
 		extraBody: Object.assign(
 			{
 				temperature: 0.3,
+				provider: {
+					sort: "price",
+					preferred_min_throughput: { p90: 50 },
+					preferred_max_latency: { p90: 3 },
+				},
 			},
 			extraBody
 		),
-		provider: {
-			sort: "price",
-		},
 		reasoning: Object.assign(
 			{
 				effort: "high",
