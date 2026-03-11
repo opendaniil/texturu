@@ -11,8 +11,8 @@ export function HomePage() {
 
 	return (
 		<main className={cn(container.default, "flex-1 flex flex-col")}>
-			<section className="flex flex-1 w-full items-center justify-center overflow-hidden py-32">
-				<BackgroundLines className="container flex w-full flex-col items-center justify-center px-4 md:h-full">
+			<section className="flex flex-1 w-full items-center justify-center overflow-hidden">
+				<BackgroundLines className="container flex w-full flex-col items-center justify-center py-16">
 					<h1 className="relative z-20 py-2 text-center font-sans text-4xl font-semibold tracking-tighter text-balance md:py-10 sm:text-5xl lg:text-6xl">
 						{heading}
 					</h1>
