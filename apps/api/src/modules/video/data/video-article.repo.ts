@@ -2,8 +2,6 @@ import { Injectable } from "@nestjs/common"
 import {
 	type LatestVideoArticle,
 	latestVideoArticleSchema,
-	type SitemapVideoArticle,
-	sitemapVideoArticleSchema,
 	type VideoArticle,
 	videoArticleSchema,
 } from "@texturu/schemas"
@@ -92,16 +90,12 @@ export class VideoArticleRepo {
 		return this.toDomain(row)
 	}
 
-	async findForSitemap(
-		executor: InjectDb.Client = this.db
-	): Promise<SitemapVideoArticle[]> {
-		const rows = await executor
+	async findForSitemap(executor: InjectDb.Client = this.db) {
+		return executor
 			.selectFrom("videoArticles")
 			.select(["slug", "updatedAt"])
 			.orderBy("createdAt", "desc")
 			.execute()
-
-		return sitemapVideoArticleSchema.array().parse(rows)
 	}
 
 	async findLatest(
