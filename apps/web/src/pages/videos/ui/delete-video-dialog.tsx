@@ -1,5 +1,6 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { type ReactNode, useState } from "react"
 import { ApiClientError } from "@/shared/lib/api-client"
 import { Button } from "@/shared/ui/button"
@@ -24,6 +25,7 @@ export function DeleteVideoDialog({
 	videoId,
 	children,
 }: DeleteVideoDialogProps) {
+	const queryClient = useQueryClient()
 	const [open, setOpen] = useState(false)
 	const [adminKey, setAdminKey] = useState("")
 	const [error, setError] = useState<string | null>(null)
@@ -44,6 +46,7 @@ export function DeleteVideoDialog({
 
 		try {
 			await deleteVideo(videoId, adminKey)
+			await queryClient.invalidateQueries({ queryKey: ["videos"] })
 			handleOpenChange(false)
 		} catch (err) {
 			if (err instanceof ApiClientError && err.status === 403) {
