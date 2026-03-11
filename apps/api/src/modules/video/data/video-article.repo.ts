@@ -60,7 +60,7 @@ export class VideoArticleRepo {
 		return row ? this.toDomain(row) : null
 	}
 
-	async create(
+	async upsert(
 		params: Omit<VideoArticle, "id" | "createdAt" | "updatedAt">,
 		executor: InjectDb.Client = this.db
 	): Promise<VideoArticle> {
@@ -75,6 +75,17 @@ export class VideoArticleRepo {
 				sections: sql`${JSON.stringify(params.sections)}::jsonb`,
 				article: params.article,
 			})
+			// regenerate article
+			.onConflict((oc) =>
+				oc.column("videoId").doUpdateSet({
+					title: params.title,
+					description: params.description,
+					globalSummary: params.globalSummary,
+					sections: sql`${JSON.stringify(params.sections)}::jsonb`,
+					article: params.article,
+					updatedAt: sql`now()`,
+				})
+			)
 			.returningAll()
 			.executeTakeFirstOrThrow()
 

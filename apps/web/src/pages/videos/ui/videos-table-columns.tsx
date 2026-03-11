@@ -20,6 +20,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu"
 import { VIDEOS_TABLE_SORT_BY } from "../model/videos-table-features"
+import { DeleteVideoDialog } from "./delete-video-dialog"
+import { RegenerateArticleDialog } from "./regenerate-article-dialog"
 import { VideoInfoDialog } from "./video-info-dialog"
 
 const statusBadgeVariantByStatus: Record<
@@ -84,6 +86,22 @@ function VideoActionsCell({ video }: { video: VideoResponse }) {
 						Информация о видео
 					</DropdownMenuItem>
 				</VideoInfoDialog>
+
+				{video.status === "done" && (
+					<RegenerateArticleDialog videoId={video.id}>
+						<DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+							Регенерировать
+						</DropdownMenuItem>
+					</RegenerateArticleDialog>
+				)}
+
+				<DropdownMenuSeparator />
+
+				<DeleteVideoDialog videoId={video.id}>
+					<DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+						Удалить
+					</DropdownMenuItem>
+				</DeleteVideoDialog>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	)

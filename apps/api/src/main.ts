@@ -11,9 +11,7 @@ import { createSwagger } from "./infra/swagger/swagger"
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, {
-		logger: process.env.OTEL_EXPORTER_OTLP_ENDPOINT
-			? new OtelLoggerService()
-			: undefined,
+		logger: new OtelLoggerService(),
 	})
 	app.setGlobalPrefix("api")
 

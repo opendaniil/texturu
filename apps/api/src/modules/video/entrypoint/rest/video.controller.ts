@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -8,6 +9,7 @@ import {
 	Param,
 	Post,
 	Query,
+	UseGuards,
 } from "@nestjs/common"
 import { ApiOkResponse } from "@nestjs/swagger"
 import { VideoService } from "../../application/video.service"
@@ -23,6 +25,7 @@ import { VideoArticleSlugDto } from "./dto/video-article-slug.dto"
 import { VideoIdDto } from "./dto/video-id.dto"
 import { VideoResponseDto } from "./dto/video-response.dto"
 import { VideoStatusResponseDto } from "./dto/video-status-response.dto"
+import { AdminKeyGuard } from "./guard/admin-key.guard"
 
 @Controller("video")
 export class VideoController {
@@ -73,6 +76,20 @@ export class VideoController {
 		}
 
 		return result
+	}
+
+	@Delete(":id")
+	@HttpCode(HttpStatus.OK)
+	@UseGuards(AdminKeyGuard)
+	deleteVideo(@Param() { id }: VideoIdDto) {
+		return this.videoService.deleteVideo(id)
+	}
+
+	@Post(":id/regenerate-article")
+	@HttpCode(HttpStatus.OK)
+	@UseGuards(AdminKeyGuard)
+	regenerateArticle(@Param() { id }: VideoIdDto) {
+		return this.videoService.regenerateArticle(id)
 	}
 
 	@Get(":id")

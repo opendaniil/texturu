@@ -6,6 +6,11 @@ export function enableCors(app: INestApplication, config: AppConfigService) {
 		origin: [config.get("WEB_HOST")],
 		credentials: true,
 		methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-		allowedHeaders: ["Content-Type", "Authorization", "User-Agent"],
+		allowedHeaders: [
+			"Content-Type",
+			"Authorization",
+			"User-Agent",
+			"x-admin-key",
+		],
 	})
 }

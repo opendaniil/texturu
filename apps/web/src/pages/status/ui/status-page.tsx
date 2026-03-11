@@ -36,7 +36,12 @@ function getBackendErrorMessage(error: unknown): string {
 
 function isRetryableError(error: unknown): boolean {
 	if (isNotFoundError(error)) return false
-	if (error instanceof ApiClientError && error.status >= 400 && error.status < 500) return false
+	if (
+		error instanceof ApiClientError &&
+		error.status >= 400 &&
+		error.status < 500
+	)
+		return false
 	return true
 }
 
@@ -72,9 +77,7 @@ export default function StatusPage({ slug }: { slug: string }) {
 					<StatusVideo source={data?.source} externalId={data?.externalId} />
 
 					<div className="flex justify-center">
-						{isPending && !data && (
-							<Spinner className="size-8" />
-						)}
+						{isPending && !data && <Spinner className="size-8" />}
 
 						{isProcessError && (
 							<StatusError

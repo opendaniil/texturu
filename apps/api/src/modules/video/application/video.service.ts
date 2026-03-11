@@ -1,27 +1,30 @@
-import { Inject, Injectable, Logger } from "@nestjs/common"
+import { Inject, Injectable } from "@nestjs/common"
 import type {
 	LatestVideoArticlesQuery,
 	ListVideosQuery,
 } from "@texturu/schemas"
 import { CacheService } from "src/infra/cache/cache.service"
 import { UowService } from "src/infra/database/unit-of-work.service"
+import { RevalidationService } from "src/infra/revalidation/revalidation.service"
 import { VideoRepo } from "../data/video.repo"
 import { VideoArticleRepo } from "../data/video-article.repo"
+import { VideoCaptionRepo } from "../data/video-caption.repo"
 import { VideoInfoRepo } from "../data/video-info.repo"
 import type { CreateVideoDto } from "../entrypoint/rest/dto/create-video.dto"
+import { PlainTextNotFoundError, VideoNotFoundError } from "./video.errors"
 import { VideoJobsService } from "./video-jobs.service"
 
 @Injectable()
 export class VideoService {
-	private readonly logger = new Logger(VideoService.name)
-
 	constructor(
 		@Inject() private readonly uow: UowService,
 		@Inject() private readonly videoRepo: VideoRepo,
 		@Inject() private readonly videoInfoRepo: VideoInfoRepo,
 		@Inject() private readonly videoArticleRepo: VideoArticleRepo,
+		@Inject() private readonly videoCaptionRepo: VideoCaptionRepo,
 		@Inject() private readonly videoJobsService: VideoJobsService,
-		@Inject() private readonly cacheService: CacheService
+		@Inject() private readonly cacheService: CacheService,
+		@Inject() private readonly revalidationService: RevalidationService
 	) {}
 
 	async create(createVideoDto: CreateVideoDto) {
@@ -159,5 +162,46 @@ export class VideoService {
 		)
 
 		return { items }
+	}
+
+	async deleteVideo(videoId: string) {
+		const video = await this.videoRepo.findById(videoId)
+		if (!video) {
+			throw new VideoNotFoundError(videoId)
+		}
+
+		const article = await this.videoArticleRepo.findByVideoId(videoId)
+
+		await this.videoRepo.deleteById(videoId)
+
+		if (article) {
+			await this.revalidationService.revalidateTags([`article:${article.slug}`])
+		}
+
+		return { success: true }
+	}
+
+	async regenerateArticle(videoId: string) {
+		const video = await this.videoRepo.findById(videoId)
+		if (!video) {
+			throw new VideoNotFoundError(videoId)
+		}
+
+		const plainText =
+			await this.videoCaptionRepo.findPlainTextByVideoId(videoId)
+		if (!plainText) {
+			throw new PlainTextNotFoundError(videoId)
+		}
+
+		await this.videoJobsService.removeGenerateArticleJob(videoId)
+
+		await this.videoRepo.updateStatus(videoId, {
+			status: "queued",
+			statusMessage: "В очереди на перегенерацию статьи",
+		})
+
+		await this.videoJobsService.enqueueGenerateArticle({ videoId })
+
+		return { success: true }
 	}
 }

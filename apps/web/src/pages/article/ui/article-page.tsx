@@ -99,7 +99,7 @@ export async function ArticlePage({ params }: PageProps) {
 				<div
 					className={`${container.narrow} flex flex-col items-center gap-4 text-center`}
 				>
-					<h1 className="text-5xl font-semibold text-pretty md:text-6xl whitespace-normal  [overflow-wrap:anywhere]">
+					<h1 className="text-3xl font-semibold text-pretty md:text-5xl whitespace-normal [overflow-wrap:anywhere]">
 						{title}
 					</h1>
 

@@ -1,9 +1,6 @@
 import { MastraClient } from "@mastra/client-js"
 import { Injectable } from "@nestjs/common"
-import {
-	type ArticleWorkflowOutput,
-	articleWorkflowOutputSchema,
-} from "@texturu/schemas"
+import { type ArticleWorkflowOutput } from "@texturu/schemas"
 import { AppConfigService } from "src/infra/app-config/app-config.service"
 
 @Injectable()
@@ -34,6 +31,6 @@ export class MastraService {
 			throw new Error("Workflow failed to generate article")
 		}
 
-		return articleWorkflowOutputSchema.parse(result.result)
+		return result.result
 	}
 }

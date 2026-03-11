@@ -34,7 +34,10 @@ export class FetchInfoService {
 		if (duration > MAX_VIDEO_DURATION_SECONDS) {
 			const durationMin = Math.round(duration / 60)
 			const limitMin = MAX_VIDEO_DURATION_SECONDS / 60
-			await this.markFailed(videoId, `Видео слишком длинное (${durationMin} мин). Максимум — ${limitMin} мин`)
+			await this.markFailed(
+				videoId,
+				`Видео слишком длинное (${durationMin} мин). Максимум — ${limitMin} мин`
+			)
 			return
 		}
 
@@ -48,7 +51,10 @@ export class FetchInfoService {
 		})
 	}
 
-	private async fetchAndSaveInfo(videoId: string, youtubeId: string): Promise<{ duration: number }> {
+	private async fetchAndSaveInfo(
+		videoId: string,
+		youtubeId: string
+	): Promise<{ duration: number }> {
 		const youtubeUrl = `https://www.youtube.com/watch?v=${youtubeId}`
 		const proxy = this.appConfig.get("YOUTUBE_PROXY")
 

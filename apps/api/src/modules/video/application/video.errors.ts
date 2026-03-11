@@ -6,6 +6,12 @@ export class QueueUnavailableError extends DomainError {
 	}
 }
 
+export class VideoNotFoundError extends DomainError {
+	constructor(videoId: string) {
+		super(`Video ${videoId} not found`, 404)
+	}
+}
+
 export class CaptionsNotFoundError extends DomainError {
 	constructor(videoId: string) {
 		super(`No subtitle tracks found for video ${videoId}`)
@@ -20,6 +26,6 @@ export class SubtitleDownloadError extends DomainError {
 
 export class PlainTextNotFoundError extends DomainError {
 	constructor(videoId: string) {
-		super(`No plain text found for video ${videoId}`)
+		super(`No plain text found for video ${videoId}`, 404)
 	}
 }

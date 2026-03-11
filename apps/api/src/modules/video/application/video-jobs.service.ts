@@ -55,6 +55,14 @@ export class VideoJobsService {
 		)
 	}
 
+	async removeGenerateArticleJob(videoId: string) {
+		const jobId = this.toJobId(QUEUES.GENERATE_ARTICLE, videoId)
+		const job = await this.generateQueue.getJob(jobId)
+		if (job) {
+			await job.remove()
+		}
+	}
+
 	private async enqueue<TData extends { videoId: string }>(
 		queue: Queue,
 		name: string,

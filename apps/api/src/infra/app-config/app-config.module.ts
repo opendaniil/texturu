@@ -15,12 +15,15 @@ export interface EnvironmentVariables {
 	POSTGRES_PORT: number
 
 	WEB_HOST: string
+	WEB_HOST_INTERNAL?: string
 
 	REDIS_PORT: number
 	REDIS_HOST: string
 
 	MASTRA_HOST: string
 	MASTRA_PORT: number
+
+	ADMIN_SECRET_KEY: string
 }
 
 function getSchema() {
@@ -36,12 +39,15 @@ function getSchema() {
 		POSTGRES_PORT: Joi.number().port().required(),
 
 		WEB_HOST: Joi.string().required(),
+		WEB_HOST_INTERNAL: Joi.string().optional(),
 
 		REDIS_PORT: Joi.number().required(),
 		REDIS_HOST: Joi.string().required(),
 
 		MASTRA_HOST: Joi.string().required(),
 		MASTRA_PORT: Joi.number().port().required(),
+
+		ADMIN_SECRET_KEY: Joi.string().required(),
 	})
 }
 

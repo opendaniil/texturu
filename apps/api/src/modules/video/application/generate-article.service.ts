@@ -1,8 +1,10 @@
 import { randomBytes } from "node:crypto"
 import { Injectable } from "@nestjs/common"
 import slugify from "@sindresorhus/slugify"
+import { VideoArticle } from "@texturu/schemas"
 import { format } from "date-fns"
 import { UowService } from "src/infra/database/unit-of-work.service"
+import { RevalidationService } from "src/infra/revalidation/revalidation.service"
 import { VideoRepo } from "../data/video.repo"
 import { VideoArticleRepo } from "../data/video-article.repo"
 import { VideoCaptionRepo } from "../data/video-caption.repo"
@@ -17,7 +19,8 @@ export class GenerateArticleService {
 		private readonly videoCaptionRepo: VideoCaptionRepo,
 		private readonly videoArticleRepo: VideoArticleRepo,
 		private readonly mastraService: MastraService,
-		private readonly uow: UowService
+		private readonly uow: UowService,
+		private readonly revalidationService: RevalidationService
 	) {}
 
 	async process({ videoId }: GenerateArticleJobData) {
@@ -36,8 +39,11 @@ export class GenerateArticleService {
 			videoId,
 			plainText
 		)
+
+		let slug: VideoArticle["slug"]
+
 		await this.uow.run(async (trx) => {
-			await this.videoArticleRepo.create(
+			const article = await this.videoArticleRepo.upsert(
 				{
 					videoId,
 					title: articleData.title,
@@ -50,6 +56,8 @@ export class GenerateArticleService {
 				trx
 			)
 
+			slug = article.slug
+
 			await this.videoRepo.updateStatus(
 				videoId,
 				{
@@ -59,6 +67,9 @@ export class GenerateArticleService {
 				trx
 			)
 		})
+
+		// biome-ignore lint/style/noNonNullAssertion: slug всегда есть
+		await this.revalidationService.revalidateTags([`article:${slug!}`])
 	}
 
 	private createSlug(title: string): string {

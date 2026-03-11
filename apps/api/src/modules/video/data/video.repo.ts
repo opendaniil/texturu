@@ -124,6 +124,15 @@ export class VideoRepo {
 		return row ? this.toDomain(row) : null
 	}
 
+	async deleteById(id: string, executor: InjectDb.Client = this.db) {
+		const res = await executor
+			.deleteFrom("videos")
+			.where("id", "=", id)
+			.executeTakeFirstOrThrow()
+
+		return res.numDeletedRows > 0
+	}
+
 	async updateStatus(
 		videoId: string,
 		params: {
