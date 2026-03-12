@@ -1,13 +1,45 @@
 # texturu
 
-Монорепозиторий для приложения обработки YouTube-видео.
+## [textu.ru](https://textu.ru/) — fullstack приложение, который по ссылке на YouTube видео формирует структурированный конспект и помогает быстрее получать суть длинных роликов.
 
-## Приложения (Apps)
+## Зачем
+Проект решает простую задачу: вместо просмотра длинного видео пользователь получает краткую и структурированную выжимку содержания.
 
-* `apps/api` — NestJS API (`/api/*`), PostgreSQL (Kysely), воркеры очереди BullMQ
-* `apps/web` — фронтенд на Next.js
-* `apps/mastra` — AI-сервис Mastra
+## Возможности
+- обработка YouTube видео по ссылке с запуском пайплайна анализа контента
+- генерация структурированной статьи вместо простого краткого пересказа
+- чат с LLM по обработанному материалу
+- RAG для ответов на основе конкретного содержания видео
+- инструмент LLM работать с отдельными секциями статьи
 
-## Пакеты (Packages)
+## Стек
+- Frontend: Next.js, TypeScript
+- Backend: NestJS, TypeScript
+- Database: PostgreSQL
+- Queues: BullMQ
+- Shared contracts: Zod
+- Architecture: Monorepo (pnpm workspace)
 
-* `packages/schemas` — общие Zod-схемы для доменной модели и API
+## Архитектура
+- `apps/web` — клиентское приложение на Next.js
+- `apps/api` — API на NestJS, работа с PostgreSQL, фоновые воркеры
+- `apps/mastra` — AI-сервис
+- `packages/schemas` — общие схемы и контракты
+
+## Локальный запуск
+### Требования
+- Node.js
+- pnpm
+- Docker
+
+### Установка
+```bash
+pnpm install
+cp .env.example .env
+````
+
+### Запуск
+
+```bash
+pnpm dev
+```
