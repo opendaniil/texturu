@@ -109,7 +109,7 @@ const summarizeChunks = createStep({
 					// Почему использую llama 3.1 8b instruct?
 					// 5.4 % рейтинг галлюцинаций https://github.com/vectara/hallucination-leaderboard/tree/hhem-2.3-old-dataset
 					// 300+ токенов в секунду
-					model: llama318binstruct(),
+					model: llama318binstruct({ max_tokens: maxSize }),
 					maxRetries: 3,
 					system: `
 	You are a summarization bot. You must stick to the information provided solely by the text in the passage.
