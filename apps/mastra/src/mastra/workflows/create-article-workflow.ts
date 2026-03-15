@@ -31,6 +31,7 @@ const articleMetadataSchema = z.object({
 })
 
 const summariesSchema = z.object({
+	videoId: z.string(),
 	summaries: z.array(z.string()),
 })
 
@@ -67,7 +68,6 @@ const summarizeChunks = createStep({
 	description: "Splits subtitles into chunks and summarizes each one",
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: summariesSchema,
-	retries: 3,
 	execute: async ({ inputData, mastra }) => {
 		const logger = mastra.getLogger()
 		const subtitles = inputData.subtitles.trim()
@@ -76,6 +76,7 @@ const summarizeChunks = createStep({
 		}
 
 		logger.info("summarize-chunks: input", {
+			videoId: inputData.videoId,
 			subtitlesLength: subtitles.length,
 		})
 
@@ -95,6 +96,7 @@ const summarizeChunks = createStep({
 		}
 
 		logger.info("summarize-chunks: chunking done", {
+			videoId: inputData.videoId,
 			chunkCount: chunkTexts.length,
 			maxSize,
 			overlap,
@@ -131,16 +133,11 @@ const summarizeChunks = createStep({
 			}
 		)
 
-		const totalSummariesLength = summaries.reduce(
-			(sum, s) => sum + s.length,
-			0,
-		)
-		const totalChunksLength = chunkTexts.reduce(
-			(sum, t) => sum + t.length,
-			0,
-		)
+		const totalSummariesLength = summaries.reduce((sum, s) => sum + s.length, 0)
+		const totalChunksLength = chunkTexts.reduce((sum, t) => sum + t.length, 0)
 
 		logger.info("summarize-chunks: all done", {
+			videoId: inputData.videoId,
 			chunkCount: chunkTexts.length,
 			totalChunksLength,
 			totalSummariesLength,
@@ -149,33 +146,44 @@ const summarizeChunks = createStep({
 			).toFixed(2),
 		})
 
-		return { summaries }
+		return { videoId: inputData.videoId, summaries }
 	},
+})
+
+const articleDraftSchema = z.object({
+	article: z.string(),
+	sections: z.array(
+		z.object({
+			number: z.number().int().positive(),
+			title: z.string().trim().min(1),
+			content: z.string().trim().min(1),
+		})
+	),
 })
 
 const generateArticle = createStep({
 	id: "generate-article",
-	description: "Generates final article from chunk summaries",
+	description: "Generates article draft from chunk summaries",
 	inputSchema: summariesSchema,
-	outputSchema: articleWorkflowOutputSchema,
+	outputSchema: articleDraftSchema,
 	retries: 3,
 	execute: async ({ inputData, mastra }) => {
 		const logger = mastra.getLogger()
-		const model = gptOss120({ temperature: 0 })
 
 		const numberedSummaries = inputData.summaries
 			.map((s, i) => `[${i + 1}] ${s}`)
 			.join("\n\n")
 
 		logger.info("generate-article: input", {
+			videoId: inputData.videoId,
 			summaryCount: inputData.summaries.length,
 			summaryLengths: inputData.summaries.map((s) => s.length),
 			totalPromptLength: numberedSummaries.length,
 		})
 
 		const articleDraft = await generateText({
-			model,
-			maxRetries: 2,
+			model: gptOss120({ temperature: 0 }),
+			maxRetries: 3,
 			system: `
 	Ты — автор информационных статей на русском языке. Твоя задача — написать связную статью из пронумерованных саммари, которые идут в хронологическом порядке.
 
@@ -193,9 +201,30 @@ const generateArticle = createStep({
 		})
 
 		const article = articleDraft.text.trim()
+		const sections = extractSectionsFromArticle(article)
+		if (sections.length === 0) {
+			throw new Error("Article has no H2 sections — likely malformed output")
+		}
+
+		return { article, sections }
+	},
+})
+
+const extractMetadata = createStep({
+	id: "extract-metadata",
+	description: "Extracts title, description, and summary from article",
+	inputSchema: articleDraftSchema,
+	outputSchema: articleWorkflowOutputSchema,
+	retries: 3,
+	execute: async ({ inputData, mastra }) => {
+		const logger = mastra.getLogger()
+
+		logger.info("extract-metadata: input", {
+			articleLength: inputData.article.length,
+		})
 
 		const metadata = await generateText({
-			model,
+			model: gptOss120({ temperature: 0 }),
 			maxRetries: 3,
 			output: Output.object({ schema: articleMetadataSchema }),
 			system: `
@@ -206,7 +235,7 @@ const generateArticle = createStep({
 	- title: ёмкий, конкретный заголовок без кликбейта. Отражай главную тему, а не общую категорию.
 	- description: 1-2 предложения для SEO — о чём статья и что узнает читатель.
 	- globalSummary: 2-3 предложения, передающие ключевые факты статьи. Для карточки-превью.`,
-			prompt: article,
+			prompt: inputData.article,
 		})
 
 		if (!metadata.output) {
@@ -214,17 +243,13 @@ const generateArticle = createStep({
 		}
 
 		const { title, description, globalSummary } = metadata.output
-		const sections = extractSectionsFromArticle(article)
-		if (sections.length === 0) {
-			throw new Error("Article has no H2 sections — likely malformed output")
-		}
 
 		return {
 			title: title.trim(),
 			description: description.trim(),
 			globalSummary: globalSummary.trim(),
-			sections,
-			article,
+			sections: inputData.sections,
+			article: inputData.article,
 		}
 	},
 })
@@ -234,6 +259,7 @@ const embedSubtitles = createStep({
 	description: "Embeds subtitles into vector index for retrieval",
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: z.void(),
+	retries: 2,
 	execute: async ({ inputData }) => {
 		const { videoId, subtitles } = inputData
 
@@ -258,13 +284,14 @@ const createArticleWorkflow = createWorkflow({
 })
 	.then(summarizeChunks)
 	.then(generateArticle)
+	.then(extractMetadata)
 	.map(async ({ getInitData }) => {
 		const { subtitles, videoId } = getInitData<ArticleWorkflowInput>()
 		return { subtitles, videoId }
 	})
 	.then(embedSubtitles)
 	.map(async ({ getStepResult }) => {
-		return getStepResult("generate-article")
+		return getStepResult("extract-metadata")
 	})
 
 createArticleWorkflow.commit()
