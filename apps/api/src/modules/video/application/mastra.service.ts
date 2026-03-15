@@ -25,6 +25,9 @@ export class MastraService {
 				subtitles,
 				videoId,
 			},
+			initialState: {
+				videoId,
+			},
 		})
 
 		if (result.status !== "success") {
