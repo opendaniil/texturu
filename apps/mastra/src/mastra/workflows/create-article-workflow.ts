@@ -68,11 +68,16 @@ const summarizeChunks = createStep({
 	inputSchema: articleWorkflowInputSchema,
 	outputSchema: summariesSchema,
 	retries: 3,
-	execute: async ({ inputData }) => {
+	execute: async ({ inputData, mastra }) => {
+		const logger = mastra.getLogger()
 		const subtitles = inputData.subtitles.trim()
 		if (subtitles.length === 0) {
 			throw new Error("Subtitles are empty")
 		}
+
+		logger.info("summarize-chunks: input", {
+			subtitlesLength: subtitles.length,
+		})
 
 		const { maxSize, overlap } = getChunkConfig(subtitles.length)
 		const doc = MDocument.fromText(subtitles)
@@ -89,6 +94,13 @@ const summarizeChunks = createStep({
 			throw new Error("Chunking produced no non-empty chunks")
 		}
 
+		logger.info("summarize-chunks: chunking done", {
+			chunkCount: chunkTexts.length,
+			maxSize,
+			overlap,
+			chunkLengths: chunkTexts.map((t) => t.length),
+		})
+
 		const summaries = await inBatches(
 			chunkTexts,
 			SUMMARIZE_CONCURRENCY,
@@ -100,16 +112,42 @@ const summarizeChunks = createStep({
 					model: llama318binstruct(),
 					maxRetries: 3,
 					system: `
-	You are a summarization bot. You must stick to the information provided solely by the text in the passage. 
-	Provide a concise summary in Russian, covering the core pieces of information described. 
-	Preserve all key facts, names, numbers, and dates. 
-	Do not add any information beyond what is in the passage. 
+	You are a summarization bot. You must stick to the information provided solely by the text in the passage.
+	Provide a concise summary in Russian, covering the core pieces of information described.
+	Preserve all key facts, names, numbers, and dates.
+	Do not add any information beyond what is in the passage.
 	Do not include preambles or meta-commentary — output only the summary.`,
 					prompt: chunkText,
 				})
+
+				const ratio = text.length / chunkText.length
+				logger.info(`summarize-chunks: chunk ${index} done`, {
+					chunkLength: chunkText.length,
+					summaryLength: text.length,
+					compressionRatio: ratio.toFixed(2),
+				})
+
 				return text
 			}
 		)
+
+		const totalSummariesLength = summaries.reduce(
+			(sum, s) => sum + s.length,
+			0,
+		)
+		const totalChunksLength = chunkTexts.reduce(
+			(sum, t) => sum + t.length,
+			0,
+		)
+
+		logger.info("summarize-chunks: all done", {
+			chunkCount: chunkTexts.length,
+			totalChunksLength,
+			totalSummariesLength,
+			overallCompressionRatio: (
+				totalSummariesLength / totalChunksLength
+			).toFixed(2),
+		})
 
 		return { summaries }
 	},
@@ -121,12 +159,19 @@ const generateArticle = createStep({
 	inputSchema: summariesSchema,
 	outputSchema: articleWorkflowOutputSchema,
 	retries: 3,
-	execute: async ({ inputData }) => {
+	execute: async ({ inputData, mastra }) => {
+		const logger = mastra.getLogger()
 		const model = gptOss120({ temperature: 0 })
 
 		const numberedSummaries = inputData.summaries
 			.map((s, i) => `[${i + 1}] ${s}`)
 			.join("\n\n")
+
+		logger.info("generate-article: input", {
+			summaryCount: inputData.summaries.length,
+			summaryLengths: inputData.summaries.map((s) => s.length),
+			totalPromptLength: numberedSummaries.length,
+		})
 
 		const articleDraft = await generateText({
 			model,
