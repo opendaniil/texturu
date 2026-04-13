@@ -38,7 +38,7 @@ const summariesSchema = z.object({
 	summaries: z.array(z.string()),
 })
 
-const SUMMARIZE_CONCURRENCY = 5
+const SUMMARIZE_CONCURRENCY = 2
 
 function getChunkConfig(textLength: number) {
 	const t = Math.max(0, Math.min(textLength, 100_000))

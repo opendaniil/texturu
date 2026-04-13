@@ -12,6 +12,6 @@ export const llama318binstruct = (
 			extraBody
 		),
 		provider: {
-			only: ["groq"],
+			only: ["groq", "friendli", "cerebras/fp16"],
 		},
 	})
