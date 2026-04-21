@@ -6,11 +6,15 @@ import {
 	articleWorkflowOutputSchema,
 } from "@texturu/schemas"
 import { generateText, Output } from "ai"
+import { jsonrepair } from "jsonrepair"
 import z from "zod"
 import { gptOss120 } from "../models/gpt-oss-120b"
 import { llama318binstruct } from "../models/llama-3.1-8b-instruct"
 import { ingestSubtitles } from "../store/subtitles"
-import { extractSectionsFromArticle } from "./article-sections.helper"
+import {
+	extractJsonPayload,
+	extractSectionsFromArticle,
+} from "./create-article-workflow.helper"
 
 const articleMetadataSchema = z.object({
 	title: z
@@ -111,7 +115,7 @@ const summarizeChunks = createStep({
 		const summaries = await inBatches(
 			chunkTexts,
 			SUMMARIZE_CONCURRENCY,
-			async (chunkText, index) => {
+			async (chunkText) => {
 				const { text } = await generateText({
 					// Почему использую llama 3.1 8b instruct?
 					// 5.4 % рейтинг галлюцинаций https://github.com/vectara/hallucination-leaderboard/tree/hhem-2.3-old-dataset
@@ -165,7 +169,7 @@ const generateArticle = createStep({
 	inputSchema: summariesSchema,
 	outputSchema: articleDraftSchema,
 	stateSchema: workflowStateSchema,
-	retries: 3,
+	retries: 1,
 	execute: async ({ inputData, mastra, state }) => {
 		const logger = mastra.getLogger()
 		const { videoId } = state
@@ -183,7 +187,7 @@ const generateArticle = createStep({
 
 		const articleDraft = await generateText({
 			model: gptOss120({ temperature: 0 }),
-			maxRetries: 3,
+			maxRetries: 2,
 			system: `
 	Ты — автор информационных статей на русском языке. Твоя задача — написать связную статью из пронумерованных саммари, которые идут в хронологическом порядке.
 
@@ -219,7 +223,7 @@ const extractMetadata = createStep({
 	inputSchema: articleDraftSchema,
 	outputSchema: articleWorkflowOutputSchema,
 	stateSchema: workflowStateSchema,
-	retries: 3,
+	retries: 1,
 	execute: async ({ inputData, mastra, state }) => {
 		const logger = mastra.getLogger()
 		const { videoId } = state
@@ -229,34 +233,84 @@ const extractMetadata = createStep({
 			articleLength: inputData.article.length,
 		})
 
-		const metadata = await generateText({
-			model: gptOss120({ temperature: 0 }),
-			maxRetries: 3,
-			output: Output.object({ schema: articleMetadataSchema }),
-			system: `
-	На основе статьи заполни данные.
-	Используй статью только как источник фактов.
+		try {
+			const metadata = await generateText({
+				model: gptOss120({ temperature: 0 }),
+				maxRetries: 1,
+				output: Output.object({ schema: articleMetadataSchema }),
+				system: `
+На основе статьи заполни данные.
+Используй статью только как источник фактов.
 
-	Требования:
-	- Отвечай на русском языке.
-	- title: ёмкий, конкретный заголовок без кликбейта. Отражай главную тему, а не общую категорию.
-	- description: 1-2 предложения для SEO — о чём статья и что узнает читатель.
-	- globalSummary: 2-3 предложения, передающие ключевые факты статьи. Для карточки-превью.`,
-			prompt: inputData.article,
-		})
+Требования:
+- Отвечай на русском языке.
+- title: ёмкий, конкретный заголовок без кликбейта. Отражай главную тему, а не общую категорию.
+- description: 1-2 предложения для SEO — о чём статья и что узнает читатель.
+- globalSummary: 2-3 предложения, передающие ключевые факты статьи. Для карточки-превью.`,
+				prompt: inputData.article,
+			})
 
-		if (!metadata.output) {
-			throw new Error("Failed to extract article metadata")
-		}
+			if (!metadata.output) {
+				throw new Error("Structured output returned no object")
+			}
 
-		const { title, description, globalSummary } = metadata.output
+			const { title, description, globalSummary } = articleMetadataSchema.parse(
+				metadata.output
+			)
 
-		return {
-			title: title.trim(),
-			description: description.trim(),
-			globalSummary: globalSummary.trim(),
-			sections: inputData.sections,
-			article: inputData.article,
+			return {
+				title: title.trim(),
+				description: description.trim(),
+				globalSummary: globalSummary.trim(),
+				sections: inputData.sections,
+				article: inputData.article,
+			}
+		} catch (error) {
+			logger.warn(
+				"extract-metadata: structured output failed, using fallback",
+				{
+					videoId,
+					error: error instanceof Error ? error.message : String(error),
+				}
+			)
+
+			const fallback = await generateText({
+				model: gptOss120({ temperature: 0 }),
+				maxRetries: 1,
+				system: `
+Верни только JSON-объект без markdown и без пояснений.
+
+Формат:
+{
+  "title": "string",
+  "description": "string",
+  "globalSummary": "string"
+}
+
+Требования:
+- Отвечай на русском языке.
+- title: ёмкий, конкретный заголовок без кликбейта. Отражай главную тему, а не общую категорию.
+- description: 1-2 предложения для SEO — о чём статья и что узнает читатель.
+- globalSummary: 2-3 предложения, передающие ключевые факты статьи. Для карточки-превью.
+- Никаких дополнительных полей.
+- Никакого markdown.
+- Только один JSON-объект.`,
+				prompt: inputData.article,
+			})
+
+			const rawJson = extractJsonPayload(fallback.text)
+			const repairedJson = jsonrepair(rawJson)
+			const parsedJson = JSON.parse(repairedJson)
+			const { title, description, globalSummary } =
+				articleMetadataSchema.parse(parsedJson)
+
+			return {
+				title: title.trim(),
+				description: description.trim(),
+				globalSummary: globalSummary.trim(),
+				sections: inputData.sections,
+				article: inputData.article,
+			}
 		}
 	},
 })

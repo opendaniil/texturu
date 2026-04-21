@@ -47,3 +47,25 @@ export function extractSectionsFromArticle(article: string): ArticleSection[] {
 		content: md.stringify({ type: "root", children: s.nodes }).trim(),
 	}))
 }
+
+export function extractJsonPayload(text: string): string {
+	const trimmed = text.trim()
+
+	if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+		return trimmed
+	}
+
+	const codeBlockMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
+	if (codeBlockMatch?.[1]) {
+		return codeBlockMatch[1].trim()
+	}
+
+	const firstBrace = trimmed.indexOf("{")
+	const lastBrace = trimmed.lastIndexOf("}")
+
+	if (firstBrace >= 0 && lastBrace > firstBrace) {
+		return trimmed.slice(firstBrace, lastBrace + 1)
+	}
+
+	return trimmed
+}
